@@ -1,0 +1,61 @@
+tukar_point
+- id
+- nama_reward
+- foto_reward
+- detail
+- point
+
+voucher
+- id
+- kode_voucher
+- gambar
+- jlh_potongan
+- jlh_user (default 0)
+
+materi_parenting
+- id
+- link_video
+- judul
+- deskripsi
+- poin
+
+kuis
+- id
+- nama_kuis
+- waktu_pengerjaan
+
+soal_kuis
+- id
+- kuis_id
+- soal
+- jawaban_a
+- jawaban_b
+- jawaban_c
+- jawaban_d
+- jawaban_benar
+
+store
+- id
+- kota
+- nama_store
+- alamat
+- 
+
+survey_layanan
+- id
+- nama_survey
+
+soal_survey
+- id
+- tipe_soal
+- soal
+- jawaban_1
+- jawaban_2
+- jawaban_3
+
+users
+
+promo
+- id
+- kode_promo
+
