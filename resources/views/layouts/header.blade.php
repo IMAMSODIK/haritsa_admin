@@ -439,8 +439,14 @@
                         <li> <a href="edit-profile.html"> <i data-feather="settings"></i><span>Settings</span></a>
                         </li>
                         <li>
-                            <a class="btn btn-pill btn-outline-primary btn-sm" id="logout">Log Out</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button class="btn btn-pill btn-outline-primary btn-sm">
+                                    Log Out
+                                </button>
+                            </form>
                         </li>
+
                     </ul>
                 </li>
             </ul>

@@ -76,3 +76,8 @@ promo
 - id
 - kode_promo
 
+
+
+
+08123456789
+SecurePass1

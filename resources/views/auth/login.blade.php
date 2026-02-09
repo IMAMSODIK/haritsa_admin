@@ -56,32 +56,40 @@
                             </a>
                         </div>
                         <div class="login-main">
-                            <form class="theme-form">
-                                <h4>Login untuk melanjutkan </h4>
-                                <p>Masukkan email dan password kamu</p>
+                            @if (session('error'))
+                                <div class="alert alert-danger">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
+                            <form class="theme-form" method="POST" action="{{ route('login.process') }}">
+                                @csrf
+
+                                <h4>Login untuk melanjutkan</h4>
+                                <p>Masukkan No. Handphone dan password kamu</p>
+
                                 <div class="form-group">
-                                    <label class="col-form-label">Alamat Email</label>
-                                    <input class="form-control" type="email" required=""
+                                    <label class="col-form-label">Nomor Handphone</label>
+                                    <input class="form-control" type="number" name="phone" required
                                         placeholder="admin@haritsa.com">
                                 </div>
+
                                 <div class="form-group">
                                     <label class="col-form-label">Password</label>
                                     <div class="form-input position-relative">
-                                        <input class="form-control" type="password" name="login[password]"
-                                            required="" placeholder="*********">
-                                        <div class="show-hide"><span class="show"> </span></div>
+                                        <input class="form-control" type="password" name="password" required
+                                            placeholder="*********">
+                                        <div class="show-hide"><span class="show"></span></div>
                                     </div>
                                 </div>
+
                                 <div class="form-group mb-0">
-                                    <div class="checkbox p-0">
-                                        <input id="checkbox1" type="checkbox">
-                                        <label class="text-muted" for="checkbox1">Ingat password</label>
-                                    </div>
-                                    <button class="btn btn-primary btn-block w-100" type="submit">Login</button>
+                                    <button class="btn btn-primary btn-block w-100" type="submit">
+                                        Login
+                                    </button>
                                 </div>
-                                {{-- <p class="mt-4 mb-0 text-center">Don't have account?<a class="ms-2"
-                                        href="sign-up.html">Create Account</a></p> --}}
                             </form>
+
                         </div>
                     </div>
                 </div>

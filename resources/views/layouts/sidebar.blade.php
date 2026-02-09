@@ -59,7 +59,14 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/store">
+                    <a class="sidebar-link sidebar-title" href="/banner">
+                        <i class="fa fa-picture-o text-white" aria-hidden="true"></i>
+                        <span class="">Banner</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title" href="/stores">
                         <i class="fa fa-store text-white"></i>
                         <span class="">Toko (Cabang)</span>
                     </a>
