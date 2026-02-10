@@ -55,7 +55,7 @@
                             </small>
 
                             <button type="button" class="btn btn-danger btn-sm w-100 btn-delete"
-                                data-id="{{ $banner['name'] }}">
+                                data-id="{{ $banner['id'] }}">
                                 Hapus Banner
                             </button>
 
@@ -123,7 +123,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="addBannerModal" tabindex="-1">
         <div class="modal-dialog">
@@ -230,16 +229,34 @@
 
     <script>
         $(document).on('click', '.btn-delete', function() {
-
             let id = $(this).data('id');
 
-            let action = "{{ route('banner.delete', ':id') }}";
-            action = action.replace(':id', id);
-
-            $('#deleteForm').attr('action', action);
-
-            let modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
+            Swal.fire({
+                title: 'Hapus banner?',
+                text: 'Banner akan dihapus permanen',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/banner/' + encodeURIComponent(id),
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(res) {
+                            Swal.fire('Terhapus!', res.message, 'success')
+                                .then(() => location.reload());
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Gagal', xhr.responseJSON?.message || 'Server error',
+                                'error');
+                        }
+                    });
+                }
+            });
         });
     </script>
 @endsection

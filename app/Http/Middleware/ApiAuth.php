@@ -15,8 +15,12 @@ class ApiAuth
      */
     public function handle($request, Closure $next)
     {
-        if (!session()->has('accessToken')) {
+        $isLoggedIn = session()->has('accessToken');
+        if ($isLoggedIn && $request->routeIs('login')) {
+            return redirect()->route('dashboard');
+        }
 
+        if (!$isLoggedIn && !$request->routeIs('login') && !$request->routeIs('login.process')) {
             return redirect()
                 ->route('login')
                 ->with('error', 'Sesi telah habis, silakan login kembali.');

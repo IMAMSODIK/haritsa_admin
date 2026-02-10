@@ -85,5 +85,6 @@
 
 </script>
 <script src="{{ asset('dashboard_assets/assets/js/editors/quill.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @yield('own_script')

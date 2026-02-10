@@ -128,4 +128,29 @@ class StoreController extends Controller
             ], 500);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->delete(env('API_END_POINT') . "/stores/{$id}");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => 'Gagal menghapus store dari server'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Store berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

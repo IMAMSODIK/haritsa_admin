@@ -66,6 +66,13 @@
                 </li>
 
                 <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title" href="/products">
+                        <i class="fa fa-archive text-white" aria-hidden="true"></i>
+                        <span class="">Produk</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-list">
                     <a class="sidebar-link sidebar-title" href="/stores">
                         <i class="fa fa-store text-white"></i>
                         <span class="">Toko (Cabang)</span>

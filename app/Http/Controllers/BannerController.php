@@ -76,17 +76,21 @@ class BannerController extends Controller
     public function destroy(ApiService $api, $id)
     {
         try {
-
             $result = $api->request('delete', "/banner/" . urlencode($id));
 
             if (!$result || ($result['status'] ?? null) !== 'success') {
-                return back()->with('error', 'Gagal menghapus banner');
+                return response()->json([
+                    'message' => 'Gagal menghapus banner'
+                ], 400);
             }
 
-            return back()->with('success', 'Banner berhasil dihapus');
+            return response()->json([
+                'message' => 'Banner berhasil dihapus'
+            ]);
         } catch (\Exception $e) {
-
-            return back()->with('error', 'Server tidak bisa dihubungi');
+            return response()->json([
+                'message' => 'Server tidak bisa dihubungi'
+            ], 500);
         }
     }
 }
