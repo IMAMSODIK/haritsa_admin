@@ -14,11 +14,19 @@ Route::get('/', function () {
 });
 
 Route::middleware('api.auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); 
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/banner', [BannerController::class, 'index'])->name('banner'); 
+    Route::get('/banner', [BannerController::class, 'index'])->name('banner');
     Route::post('/banner/store', [BannerController::class, 'store'])->name('banner.store');
     Route::delete('/banner/{id}', [BannerController::class, 'destroy'])->name('banner.delete');
+
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/load', [UserController::class, 'loadUser']);
+    Route::get('/users/roles', [UserController::class, 'roles']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::post('/users/{roleId}', [UserController::class, 'store']);
+    Route::patch('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
     Route::get('/stores', [StoreController::class, 'index'])->name('store.index');
     Route::post('/stores', [StoreController::class, 'store'])->name('store.store');

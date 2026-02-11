@@ -43,7 +43,7 @@
 
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStoreModal">
+                <button class="btn btn-primary add-produk" data-bs-toggle="modal" data-bs-target="#addStoreModal">
                     <i class="fa fa-plus"></i> Tambah Produk
                 </button>
             </div>
@@ -68,7 +68,7 @@
                             </div>
 
                             <div class="mt-auto d-flex gap-2">
-                                <button class="btn btn-outline-primary w-100"
+                                <button class="btn btn-outline-primary w-100 edit-produk"
                                     onclick="editProduct('{{ $p['id'] }}', this, event)" style="margin-bottom: 5px;">
                                     Edit
                                 </button>
@@ -336,8 +336,6 @@
         </div>
     </div>
 
-
-
     <div class="modal fade" id="storePickerModal" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -363,6 +361,15 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
+        let modal = "addStoreModal";
+        $(".add-produk").on("click", function() {
+            modal = "addStoreModal";
+        });
+
+        $(".edit-produk").on("click", function() {
+            modal = "editProductModal";
+        });
+
         function formatRupiah(val) {
             return new Intl.NumberFormat('id-ID').format(val);
         }
@@ -441,8 +448,13 @@
             let id = $(this).data('id');
             let name = $(this).data('name');
 
-            $('#p_storeId').val(id);
-            $('#p_storeName').val(name);
+            if(modal === 'editProductModal') {
+                $('#edit_storeId').val(id);
+                $('#edit_storeName').val(name);
+            } else {    
+                $('#p_storeId').val(id);
+                $('#p_storeName').val(name);
+            }
 
             let picker = bootstrap.Modal.getInstance(
                 document.getElementById('storePickerModal')
@@ -453,7 +465,7 @@
             // buka lagi modal tambah produk
             setTimeout(() => {
                 let addModal = new bootstrap.Modal(
-                    document.getElementById('addStoreModal') // ✅ FIX ID
+                    document.getElementById(modal)
                 );
                 addModal.show();
             }, 200);
@@ -507,8 +519,8 @@
                 let p = res.data.data;
 
                 $('#edit_product_id').val(p.id);
-                $('#edit_storeId').val(p.storeId);
-                $('#edit_storeName').val(p.storeName || '');
+                $('#edit_storeId').val(p.store.id);
+                $('#edit_storeName').val(p.store.name || '');
                 $('#edit_sku').val(p.sku);
                 $('#edit_name').val(p.name);
                 $('#edit_description').val(p.description);
