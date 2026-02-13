@@ -36,24 +36,14 @@ class PromoVideoController extends Controller
     {
         try {
 
-            $http = Http::withToken(session('accessToken'));
-
-            if ($r->hasFile('banner')) {
-                $http = $http->attach(
-                    'banner',
-                    file_get_contents($r->file('banner')->getRealPath()),
-                    $r->file('banner')->getClientOriginalName()
-                );
-            }
-
             $response = Http::withToken(session('accessToken'))
                 ->post(env('API_END_POINT') . '/promos', [
                     'name' => (string) $r->name,
                     'description' => (string) $r->description,
-                    'bannerUrl' => (string) $r->bannerUrl
+                    'type' => "VIDEO",
+                    'thumbnailUrl' => (string) $r->thumbnailUrl,
+                    'videoUrl' => (string) $r->videoUrl
                 ]);
-
-
 
             if ($response->failed()) {
                 return response()->json([
@@ -98,25 +88,24 @@ class PromoVideoController extends Controller
     public function update(Request $r, $id)
     {
         try {
-            // Ambil token dari session
             $http = Http::withToken(session('accessToken'));
 
-            // Kirim data ke API
             $response = $http->patch(env('API_END_POINT') . "/promos/$id", [
-                'name'          => (string) $r->name,
-                'description'   => (string) $r->description,
-                'bannerUrl'     => (string) $r->bannerUrl
+                'name'        => (string) $r->name,
+                'description' => (string) $r->description,
+                'videoUrl'    => (string) $r->videoUrl,
+                'thumbnailUrl'   => (string) $r->thumbnail
             ]);
 
             if ($response->failed()) {
                 return response()->json([
-                    'server' => $response->json()['message'] ?? 'Gagal update promo'
+                    'server' => $response->json()['message'] ?? 'Gagal update video promo'
                 ], $response->status());
             }
 
             return response()->json([
                 'success' => true,
-                'message' => $response->json()['message'] ?? 'Promo berhasil diupdate'
+                'message' => $response->json()['message'] ?? 'Video promo berhasil diupdate'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -124,6 +113,7 @@ class PromoVideoController extends Controller
             ], 500);
         }
     }
+
 
     public function destroy($id)
     {

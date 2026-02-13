@@ -55,11 +55,11 @@
             @forelse ($promos as $promo)
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm promo-card" style="cursor:pointer"
-                        onclick="editPromo('{{ $promo['id'] }}')">
+                        onclick="editVideoPromo('{{ $promo['id'] }}')">
 
                         {{-- Banner --}}
-                        @if (!empty($promo['bannerUrl']))
-                            <img src="{{ $promo['bannerUrl'] }}" class="card-img-top"
+                        @if (!empty($promo['thumbnailUrl']))
+                            <img src="{{ $promo['thumbnailUrl'] }}" class="card-img-top"
                                 style="height:200px;object-fit:cover;">
                         @else
                             <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px;">
@@ -76,20 +76,6 @@
                             <p class="card-text text-muted small">
                                 {{ $promo['description'] ?? '-' }}
                             </p>
-
-                            {{-- Purchase Limit --}}
-                            {{-- <small class="text-muted">
-                                Promo untuk anak usia {{ number_format($promo['minPurchase']) }} hingga {{ number_format($promo['maxDiscount']) }}
-                            </small> --}}
-
-                            {{-- Date --}}
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    {{ \Carbon\Carbon::parse($promo['startDate'])->format('d M Y H:i') }}
-                                    —
-                                    {{ \Carbon\Carbon::parse($promo['endDate'])->format('d M Y H:i') }}
-                                </small>
-                            </div>
 
                             <div class="mt-auto"></div>
 
@@ -128,52 +114,35 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5>Tambah Promo</h5>
+                    <h5>Tambah Promo Video</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form id="addPromoForm">
 
                     <div class="modal-body">
-                        <!-- NAME -->
+
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
                             <input class="form-control" id="promo_name">
                         </div>
 
-                        <!-- DESC -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
                             <textarea class="form-control" id="promo_description"></textarea>
                         </div>
 
-                        <!-- DISCOUNT -->
                         <div class="mb-3">
-                            <label class="form-label">Age Range</label>
-                            <div id="ageRange"></div>
-                            <div class="mt-2">
-                                <span id="ageValue"></span>
-                            </div>
-                        </div>
+                            <label class="form-label">Video URL</label>
+                            <input class="form-control" id="promo_videoUrl" placeholder="https://youtube.com/watch?v=xxxx">
 
-                        <!-- BANNER -->
-                        <div class="mb-3">
-                            <label class="form-label">Banner Promo</label>
-                            <input class="form-control" id="promo_bannerUrl" placeholder="https://link-banner.jpg">
-                        </div>
-
-                        <!-- DATE -->
-                        <div class="row">
-                            <div class="col mb-3">
-                                <label class="form-label">Tanggal Mulai</label>
-                                <input type="datetime-local" class="form-control" id="promo_startDate">
+                            <div id="videoPreview" class="mt-3 d-none text-center">
+                                <img id="ytThumbnail" class="img-fluid rounded shadow" style="max-height:250px;">
                             </div>
 
-                            <div class="col mb-3">
-                                <label class="form-label">Tanggal Berakhir</label>
-                                <input type="datetime-local" class="form-control" id="promo_endDate">
-                            </div>
                         </div>
+
+                        <div id="promoAlert"></div>
 
                     </div>
 
@@ -189,6 +158,7 @@
         </div>
     </div>
 
+
     <div class="modal fade" id="previewPromoModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -200,13 +170,12 @@
 
                 <div class="modal-body text-center">
 
-                    <img id="previewBanner" class="img-fluid mb-3">
+                    <div class="text-center mt-2">
+                        <img id="fallbackThumb" class="img-fluid rounded shadow" style="cursor:pointer;">
+                        <div class="fw-bold mt-1">▶ Tonton di YouTube</div>
+                    </div>
 
                     <p id="previewDesc"></p>
-
-                    <div id="previewDiscount" class="fw-bold"></div>
-
-                    <small id="previewDate" class="text-muted"></small>
 
                 </div>
 
@@ -214,66 +183,52 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editPromoModal" tabindex="-1" aria-hidden="true">
+
+    <div class="modal fade" id="editVideoModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Promo</h5>
+                    <h5 class="modal-title">Edit Promo Video</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form id="editPromoForm">
-                    <input type="hidden" id="edit_id">
+                <form id="editVideoForm">
+                    <input type="hidden" id="edit_video_id">
 
                     <div class="modal-body">
+
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name">
+                            <input type="text" class="form-control" id="edit_video_name">
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_promo_description"></textarea>
+                            <textarea class="form-control" id="edit_video_description"></textarea>
                         </div>
 
-                        <!-- DISCOUNT -->
+                        <!-- VIDEO URL -->
                         <div class="mb-3">
-                            <label class="form-label">Age Range</label>
-                            <div id="ageRangeEdit"></div>
-                            <div class="mt-2">
-                                <span id="ageValueEdit"></span>
-                            </div>
+                            <label class="form-label">URL Video</label>
+                            <input type="text" class="form-control" id="edit_video_url"
+                                placeholder="https://youtube.com/...">
                         </div>
 
-                        <!-- BANNER URL -->
-                        <div class="mb-3">
-                            <label class="form-label">Banner URL</label>
-                            <input type="text" class="form-control" id="edit_promo_bannerUrl"
-                                placeholder="https://link-banner.jpg">
-                            <img id="edit_banner_preview" class="img-fluid mt-2" style="max-height:200px;" />
+                        <!-- THUMBNAIL PREVIEW -->
+                        <div class="mb-3 text-center">
+                            <img id="edit_video_thumbnail" class="img-fluid rounded shadow d-none"
+                                style="max-height:200px;">
                         </div>
-
-                        <!-- DATE -->
-                        <div class="row">
-                            <div class="col mb-3">
-                                <label class="form-label">Tanggal Mulai</label>
-                                <input type="datetime-local" class="form-control" id="edit_promo_startDate">
-                            </div>
-                            <div class="col mb-3">
-                                <label class="form-label">Tanggal Berakhir</label>
-                                <input type="datetime-local" class="form-control" id="edit_promo_endDate">
-                            </div>
-                        </div>
-
-                        <div id="promoAlert"></div>
 
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary w-100">Update Promo</button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            Update Video Promo
+                        </button>
                     </div>
 
                 </form>
@@ -285,40 +240,6 @@
 
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-        var slider = document.getElementById('ageRange');
-        var slider2 = document.getElementById('ageRange2');
-
-        noUiSlider.create(slider, {
-            start: [0, 18],
-            connect: true,
-            range: {
-                min: 0,
-                max: 18
-            },
-            step: 1
-        });
-
-        slider.noUiSlider.on('update', function(values) {
-            document.getElementById('ageValue').innerText =
-                Math.round(values[0]) + ' - ' + Math.round(values[1]) + ' tahun';
-        });
-
-        noUiSlider.create(slider2, {
-            start: [0, 18],
-            connect: true,
-            range: {
-                min: 0,
-                max: 18
-            },
-            step: 1
-        });
-
-        slider2.noUiSlider.on('update', function(values) {
-            document.getElementById('ageValue2').innerText =
-                Math.round(values[0]) + ' - ' + Math.round(values[1]) + ' tahun';
-        });
-    </script>
 
     <script>
         function formatRupiah(val) {
@@ -333,42 +254,80 @@
             let clean = cleanNumber(this.value);
             this.value = clean ? formatRupiah(clean) : '';
         });
-        // $('#promo_banner').on('change', function(e) {
-        //     let file = e.target.files[0];
-        //     if (!file) return;
 
-        //     let reader = new FileReader();
-        //     reader.onload = function(ev) {
-        //         $('#promo_preview')
-        //             .attr('src', ev.target.result)
-        //             .removeClass('d-none');
-        //     };
-        //     reader.readAsDataURL(file);
-        // });
+        function extractYouTubeID(url) {
+            if (!url) return null;
+
+            const regExp =
+                /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+
+            const match = url.match(regExp);
+
+            return (match && match[2].length === 11) ?
+                match[2] :
+                null;
+        }
+
+        function getYoutubeThumbnail(url) {
+            const reg = /(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/;
+            const match = url.match(reg);
+            return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+        }
+
+        function updateThumbnailPreview(url) {
+            const thumb = getYoutubeThumbnail(url);
+
+            if (thumb) {
+                $('#edit_video_thumbnail')
+                    .attr('src', thumb)
+                    .removeClass('d-none');
+            } else {
+                $('#edit_video_thumbnail')
+                    .addClass('d-none');
+            }
+        }
+
+        $('#edit_video_url').on('input', function() {
+            updateThumbnailPreview($(this).val());
+        });
+
+
+        let generatedThumbnail = null;
+        $('#promo_videoUrl').on('input', function() {
+            const url = $(this).val().trim();
+            const videoId = extractYouTubeID(url);
+
+            if (videoId) {
+                generatedThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+                $('#ytThumbnail').attr('src', generatedThumbnail);
+                $('#videoPreview').removeClass('d-none');
+            } else {
+                generatedThumbnail = null;
+                $('#videoPreview').addClass('d-none');
+            }
+        });
+
 
         $('#addPromoForm').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = new FormData();
-
-            formData.append('storeId', $('#p_storeId').val());
-            formData.append('name', $('#promo_name').val());
-            formData.append('description', $('#promo_description').val());
-            formData.append('discountType', $('#promo_discountType').val());
-            formData.append('discountValue', $('#promo_discountValue').val());
-            formData.append('minPurchase', cleanNumber($('#promo_minPurchase').val()));
-            formData.append('maxDiscount', cleanNumber($('#promo_maxDiscount').val()));
-            formData.append('startDate', new Date($('#promo_startDate').val()).toISOString());
-            formData.append('endDate', new Date($('#promo_endDate').val()).toISOString());
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-            formData.append('bannerUrl', $('#promo_bannerUrl').val());
+            let payload = {
+                name: $('#promo_name').val(),
+                description: $('#promo_description').val(),
+                type: 'VIDEO',
+                videoUrl: $('#promo_videoUrl').val(),
+                thumbnailUrl: generatedThumbnail
+            };
 
             $.ajax({
-                url: '/promo-customer',
+                url: '/promo-video',
                 method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
 
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
@@ -386,109 +345,53 @@
         });
     </script>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-        function loadStores() {
-
-            $('#storeList').html('<div class="text-center p-3">Loading...</div>');
-
-            $.get('/products/stores', function(res) {
-
-                let html = '';
-
-                res.data.forEach(store => {
-                    html += `
-                <div class="card mb-2 cursor-pointer store-item"
-                     data-id="${store.id}"
-                     data-name="${store.name}">
-                    <div class="card-body">
-                        <b>${store.name}</b><br>
-                        <small>${store.location ?? ''}</small>
-                    </div>
-                </div>
-            `;
-                });
-
-                $('#storeList').html(html || '<div class="text-muted">Tidak ada store</div>');
-            });
-
-        }
-
-        $('#storePickerModal').on('shown.bs.modal', function() {
-            loadStores();
-        });
-
-        $(document).on('click', '.store-item', function() {
-
-            let id = $(this).data('id');
-            let name = $(this).data('name');
-
-            $('#p_storeId').val(id);
-            $('#p_storeName').val(name);
-
-            let picker = bootstrap.Modal.getInstance(
-                document.getElementById('storePickerModal')
-            );
-
-            picker.hide();
-
-            // buka lagi modal tambah produk
-            setTimeout(() => {
-                let addModal = new bootstrap.Modal(
-                    document.getElementById('addPromoModal') // ✅ FIX ID
-                );
-                addModal.show();
-            }, 200);
-
-        });
-    </script>
-
     <script>
         function previewPromo(promo) {
 
             document.getElementById('previewTitle').innerText = promo.name;
             document.getElementById('previewDesc').innerText = promo.description ?? '-';
 
-            let discount =
-                promo.discountType === 'PERCENTAGE' ?
-                `Diskon ${promo.discountValue}%` :
-                `Diskon Rp ${promo.discountValue.toLocaleString()}`;
+            const videoId = extractYouTubeID(promo.videoUrl);
 
-            document.getElementById('previewDiscount').innerText = discount;
+            if (!videoId) return;
 
-            document.getElementById('previewDate').innerText =
-                `${new Date(promo.startDate).toLocaleString()} - ${new Date(promo.endDate).toLocaleString()}`;
+            const embedUrl =
+                `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1`;
 
-            if (promo.bannerUrl) {
-                document.getElementById('previewBanner').src = promo.bannerUrl;
-                document.getElementById('previewBanner').classList.remove('d-none');
-            } else {
-                document.getElementById('previewBanner').classList.add('d-none');
-            }
+            const thumb =
+                `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+            $('#previewVideo').attr('src', embedUrl);
+            $('#previewVideoWrapper').removeClass('d-none');
+
+            // fallback thumbnail click
+            $('#fallbackThumb')
+                .attr('src', thumb)
+                .off('click')
+                .on('click', () => window.open(promo.videoUrl, '_blank'));
         }
 
-        function editPromo(id) {
-            $.get(`/promo-customer/${id}`, function(res) {
+
+        $('#previewPromoModal').on('hidden.bs.modal', function() {
+            $('#previewVideo').attr('src', '');
+        });
+
+        function editVideoPromo(id) {
+            $.get(`/promo-video/${id}`, function(res) {
+
                 let p = res.data;
 
-                $('#edit_id').val(id);
-                $('#edit_storeId').val(p.storeId);
-                $('#edit_promo_name').val(p.name);
-                $('#edit_promo_description').val(p.description);
-                $('#edit_promo_discountType').val(p.discountType);
-                $('#edit_promo_discountValue').val(p.discountValue);
-                $('#edit_promo_minPurchase').val(p.minPurchase);
-                $('#edit_promo_maxDiscount').val(p.maxDiscount);
+                $('#edit_video_id').val(id);
+                $('#edit_video_name').val(p.name ?? '');
+                $('#edit_video_description').val(p.description ?? '');
+                $('#edit_video_url').val(p.videoUrl ?? '');
 
-                $('#edit_promo_bannerUrl').val(p.bannerUrl);
-                $('#edit_banner_preview').attr('src', p.bannerUrl || '');
+                updateThumbnailPreview(p.videoUrl);
 
-                $('#edit_promo_startDate').val(p.startDate.slice(0, 16));
-                $('#edit_promo_endDate').val(p.endDate.slice(0, 16));
-
-                $('#editPromoModal').modal('show');
+                $('#editVideoModal').modal('show');
             });
         }
+
 
         // Preview banner saat link diubah
         $('#edit_promo_bannerUrl').on('input', function() {
@@ -497,23 +400,20 @@
         });
 
         // Submit form update
-        $('#editPromoForm').on('submit', function(e) {
+        $('#editVideoForm').on('submit', function(e) {
             e.preventDefault();
 
+            const url = $('#edit_video_url').val();
+            const thumbnail = getYoutubeThumbnail(url);
+
             $.ajax({
-                url: `/promo-customer/${$('#edit_id').val()}`,
+                url: `/promo-video/${$('#edit_video_id').val()}`,
                 method: 'patch',
                 data: {
-                    storeId: $('#edit_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    discountType: $('#edit_promo_discountType').val(),
-                    discountValue: $('#edit_promo_discountValue').val(),
-                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
-                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    bannerUrl: $('#edit_promo_bannerUrl').val(),
+                    name: $('#edit_video_name').val(),
+                    description: $('#edit_video_description').val(),
+                    videoUrl: url,
+                    thumbnail: thumbnail,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
@@ -523,71 +423,13 @@
                 error: function(xhr) {
                     $('#promoAlert').html(`
                 <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update promo'}
+                    ${xhr.responseJSON?.server || 'Gagal update video promo'}
                 </div>
             `);
                 }
             });
         });
 
-
-        // Preview banner sebelum submit
-        $('#edit_promo_banner').on('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#edit_banner_preview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Submit form update
-        $('#editPromoForm').on('submit', async function(e) {
-            e.preventDefault();
-
-            let bannerFile = $('#edit_promo_banner')[0].files[0];
-            let bannerBase64 = $('#edit_banner_preview').attr('src') || '';
-
-            if (bannerFile) {
-                bannerBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = err => reject(err);
-                    reader.readAsDataURL(bannerFile);
-                });
-            }
-
-            $.ajax({
-                url: `/promo-customer/${$('#edit_id').val()}`,
-                method: 'PUT',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    discountType: $('#edit_promo_discountType').val(),
-                    discountValue: $('#edit_promo_discountValue').val(),
-                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
-                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    banner: bannerBase64,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
-                },
-                error: function(xhr) {
-                    $('#promoAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update promo'}
-                </div>
-            `);
-                }
-            });
-        });
 
         function deletePromo(id, btn) {
             event.stopPropagation(); // supaya card tidak ikut ter-klik

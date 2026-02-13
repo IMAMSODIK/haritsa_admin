@@ -43,6 +43,8 @@ class PromoCustomerController extends Controller
                     'bannerUrl' => (string) $r->bannerUrl,
                     "minAge" => (int) $r->minAge,
                     "maxAge"=> (int) $r->maxAge,
+                    "startDate" => (string) $r->startDate,
+                    "endDate" => (string) $r->endDate,
                     'type' => "CUSTOMER"
                 ]);
 
@@ -102,6 +104,8 @@ class PromoCustomerController extends Controller
                 'bannerUrl' => (string) $r->bannerUrl,
                 "minAge" => (int) $r->minAge,
                 "maxAge"=> (int) $r->maxAge,
+                "startDate" => (string) $r->startDate,
+                "endDate" => (string) $r->endDate
             ]);
 
             if ($response->failed()) {

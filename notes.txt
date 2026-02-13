@@ -86,3 +86,6 @@ promo reguler hanya menambahkan gambar dan deskripsi
 promo customer gambar, deskripsi, tanggal_awal dan akhir promo, filter usia anak
 promo flash beradasarkan tanggal dan lokasi toko
 promo video video, keterangan, thumbnail 
+
+
+
