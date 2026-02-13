@@ -96,9 +96,12 @@ class PromoCustomerController extends Controller
 
             // Kirim data ke API
             $response = $http->patch(env('API_END_POINT') . "/promos/$id", [
-                'name'          => (string) $r->name,
-                'description'   => (string) $r->description,
-                'bannerUrl'     => (string) $r->bannerUrl
+                'storeId' => (string) $r->storeId,
+                'name' => (string) $r->name,
+                'description' => (string) $r->description,
+                'bannerUrl' => (string) $r->bannerUrl,
+                "minAge" => (int) $r->minAge,
+                "maxAge"=> (int) $r->maxAge,
             ]);
 
             if ($response->failed()) {

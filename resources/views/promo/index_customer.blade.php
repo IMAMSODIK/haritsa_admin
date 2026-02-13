@@ -215,29 +215,35 @@
     </div>
 
     <div class="modal fade" id="previewPromoModal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow">
 
-                <div class="modal-header">
-                    <h5 id="previewTitle"></h5>
+                <div class="modal-header bg-light">
+                    <h5 id="previewTitle" class="fw-bold mb-0"></h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body text-center">
+                <div class="modal-body">
 
-                    <img id="previewBanner" class="img-fluid mb-3">
+                    <img id="previewBanner" class="img-fluid rounded mb-3 d-none"
+                        style="object-fit:cover; width:100%;">
 
-                    <p id="previewDesc"></p>
+                    <p id="previewDesc" class="text-muted"></p>
 
-                    <div id="previewDiscount" class="fw-bold"></div>
+                    <div class="border rounded p-3 bg-light">
 
-                    <small id="previewDate" class="text-muted"></small>
+                        <div id="previewAge" class="small text-muted mb-1"></div>
+
+                        <small id="previewDate" class="text-muted"></small>
+
+                    </div>
 
                 </div>
 
             </div>
         </div>
     </div>
+
 
     <div class="modal fade" id="editPromoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -280,9 +286,14 @@
                         <div class="mb-3">
                             <label class="form-label">Age Range</label>
                             <div id="ageRangeEdit"></div>
+
                             <div class="mt-2">
                                 <span id="ageValueEdit"></span>
                             </div>
+
+                            <!-- hidden field -->
+                            <input type="hidden" id="minAgeEdit" name="minAge">
+                            <input type="hidden" id="maxAgeEdit" name="maxAge">
                         </div>
 
                         <!-- BANNER URL -->
@@ -356,7 +367,7 @@
     </script>
     <script>
         var slider = document.getElementById('ageRange');
-        var slider2 = document.getElementById('ageRange2');
+        var slider2 = document.getElementById('ageRangeEdit');
 
         noUiSlider.create(slider, {
             start: [0, 18],
@@ -391,8 +402,14 @@
         });
 
         slider2.noUiSlider.on('update', function(values) {
-            document.getElementById('ageValue2').innerText =
-                Math.round(values[0]) + ' - ' + Math.round(values[1]) + ' tahun';
+            let min = Math.round(values[0]);
+            let max = Math.round(values[1]);
+
+            document.getElementById('ageValueEdit').innerText =
+                min + ' - ' + max + ' tahun';
+
+            $('#minAgeEdit').val(min);
+            $('#maxAgeEdit').val(max);
         });
     </script>
 
@@ -525,50 +542,64 @@
     <script>
         function previewPromo(promo) {
 
-            document.getElementById('previewTitle').innerText = promo.name;
-            document.getElementById('previewDesc').innerText = promo.description ?? '-';
+            const safe = v => v ?? '-';
 
-            let discount =
-                promo.discountType === 'PERCENTAGE' ?
-                `Diskon ${promo.discountValue}%` :
-                `Diskon Rp ${promo.discountValue.toLocaleString()}`;
+            document.getElementById('previewTitle').innerText = safe(promo.name);
+            document.getElementById('previewDesc').innerText = safe(promo.description);
 
-            document.getElementById('previewDiscount').innerText = discount;
+            // age
+            document.getElementById('previewAge').innerText =
+                `Usia ${promo.minAge ?? 0} - ${promo.maxAge ?? 18} tahun`;
+
+            // date
+            let start = new Date(promo.startDate);
+            let end = new Date(promo.endDate);
 
             document.getElementById('previewDate').innerText =
-                `${new Date(promo.startDate).toLocaleString()} - ${new Date(promo.endDate).toLocaleString()}`;
+                `${start.toLocaleString()} — ${end.toLocaleString()}`;
+
+            // banner
+            const img = document.getElementById('previewBanner');
 
             if (promo.bannerUrl) {
-                document.getElementById('previewBanner').src = promo.bannerUrl;
-                document.getElementById('previewBanner').classList.remove('d-none');
+                img.src = promo.bannerUrl;
+                img.classList.remove('d-none');
             } else {
-                document.getElementById('previewBanner').classList.add('d-none');
+                img.classList.add('d-none');
             }
         }
+
 
         function editPromo(id) {
             $.get(`/promo-customer/${id}`, function(res) {
                 let p = res.data;
 
                 $('#edit_id').val(id);
-                $('#edit_p_storeId').val(p.storeId);
-                $('#edit_p_storeName').val(p.storeName);
+                $('#edit_p_storeId').val(p.store.id);
+                $('#edit_p_storeName').val(p.store.name);
                 $('#edit_promo_name').val(p.name);
                 $('#edit_promo_description').val(p.description);
-                $('#edit_promo_discountType').val(p.discountType);
-                $('#edit_promo_discountValue').val(p.discountValue);
-                $('#edit_promo_minPurchase').val(p.minPurchase);
-                $('#edit_promo_maxDiscount').val(p.maxDiscount);
 
                 $('#edit_promo_bannerUrl').val(p.bannerUrl);
                 $('#edit_banner_preview').attr('src', p.bannerUrl || '');
 
+                // fix datetime
                 $('#edit_promo_startDate').val(p.startDate.slice(0, 16));
                 $('#edit_promo_endDate').val(p.endDate.slice(0, 16));
+
+                let minAge = p.minAge ?? 0;
+                let maxAge = p.maxAge ?? 18;
+
+                slider2.noUiSlider.set([minAge, maxAge]);
+
+                $('#minAgeEdit').val(minAge);
+                $('#maxAgeEdit').val(maxAge);
+                $('#ageValueEdit').text(minAge + ' - ' + maxAge + ' tahun');
 
                 $('#editPromoModal').modal('show');
             });
         }
+
 
         // Preview banner saat link diubah
         $('#edit_promo_bannerUrl').on('input', function() {
@@ -584,16 +615,14 @@
                 url: `/promo-customer/${$('#edit_id').val()}`,
                 method: 'patch',
                 data: {
-                    storeId: $('#edit_storeId').val(),
+                    storeId: $('#edit_p_storeId').val(),
                     name: $('#edit_promo_name').val(),
                     description: $('#edit_promo_description').val(),
-                    discountType: $('#edit_promo_discountType').val(),
-                    discountValue: $('#edit_promo_discountValue').val(),
-                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
-                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
+                    bannerUrl: $('#edit_promo_bannerUrl').val(),
+                    minAge: $('#minAgeEdit').val(),
+                    maxAge: $('#maxAgeEdit').val(),
                     startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
                     endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    bannerUrl: $('#edit_promo_bannerUrl').val(),
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
