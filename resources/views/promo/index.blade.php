@@ -121,13 +121,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input class="form-control" id="promo_name">
+                            <input class="form-control" id="promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESC -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="promo_description"></textarea>
+                            <textarea class="form-control" id="promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- BANNER -->
@@ -188,13 +188,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name">
+                            <input type="text" class="form-control" id="edit_promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_promo_description"></textarea>
+                            <textarea class="form-control" id="edit_promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- BANNER URL -->

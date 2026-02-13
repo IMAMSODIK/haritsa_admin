@@ -124,12 +124,12 @@
 
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input class="form-control" id="promo_name">
+                            <input class="form-control" id="promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="promo_description"></textarea>
+                            <textarea class="form-control" id="promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <div class="mb-3">
@@ -201,13 +201,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_video_name">
+                            <input type="text" class="form-control" id="edit_video_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_video_description"></textarea>
+                            <textarea class="form-control" id="edit_video_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- VIDEO URL -->

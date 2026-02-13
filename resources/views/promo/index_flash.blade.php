@@ -133,7 +133,7 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="p_storeName" class="form-control" readonly>
+                                <input type="text" id="p_storeName" placeholder="Pilih Toko" class="form-control" readonly>
                                 <input type="hidden" id="p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -145,13 +145,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input class="form-control" id="promo_name">
+                            <input class="form-control" id="promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESC -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="promo_description"></textarea>
+                            <textarea class="form-control" id="promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- BANNER -->
@@ -250,19 +250,19 @@
                         <!-- STORE -->
                         <div class="mb-3" style="display: none">
                             <label class="form-label">Store ID</label>
-                            <input type="text" class="form-control" id="edit_storeId" readonly>
+                            <input type="text" class="form-control" id="edit_storeId" placeholder="Pilih Toko" readonly>
                         </div>
 
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name">
+                            <input type="text" class="form-control" id="edit_promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_promo_description"></textarea>
+                            <textarea class="form-control" id="edit_promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- BANNER URL -->

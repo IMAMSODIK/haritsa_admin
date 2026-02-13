@@ -145,7 +145,7 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="p_storeName" class="form-control" readonly>
+                                <input type="text" id="p_storeName" class="form-control" placeholder="Pilih toko" readonly>
                                 <input type="hidden" id="p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -157,13 +157,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input class="form-control" id="promo_name">
+                            <input class="form-control" id="promo_name" placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESC -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="promo_description"></textarea>
+                            <textarea class="form-control" id="promo_description" placeholder="Masukkan deksripsi promo"></textarea>
                         </div>
 
                         <!-- DISCOUNT -->
@@ -261,7 +261,7 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="edit_p_storeName" class="form-control" readonly>
+                                <input type="text" id="edit_p_storeName" placeholder="Pilih Toko" class="form-control" readonly>
                                 <input type="hidden" id="edit_p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -273,13 +273,13 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name">
+                            <input type="text" class="form-control" placeholder="Masukkan nama promo" id="edit_promo_name">
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_promo_description"></textarea>
+                            <textarea class="form-control" id="edit_promo_description" placeholder="Masukkan deskripsi promo"></textarea>
                         </div>
 
                         <!-- DISCOUNT -->
