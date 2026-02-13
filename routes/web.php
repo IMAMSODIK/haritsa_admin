@@ -5,6 +5,9 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\PromoCustomerController;
+use App\Http\Controllers\PromoFlashController;
+use App\Http\Controllers\PromoVideoController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -41,11 +44,29 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/products/{id}', [ProdukController::class, 'show']);
     Route::delete('/products/{id}', [ProdukController::class, 'destroy']);
 
-    Route::get('/promo', [PromoController::class, 'index'])->name('promo.index');
-    Route::post('/promo', [PromoController::class, 'store'])->name('promo.store');
-    Route::patch('/promo/{id}', [PromoController::class, 'update']);
-    Route::get('/promo/{id}', [PromoController::class, 'show']);
-    Route::delete('/promo/{id}', [PromoController::class, 'destroy']);
+    Route::get('/promo-reguler', [PromoController::class, 'index'])->name('promo.index');
+    Route::post('/promo-reguler', [PromoController::class, 'store'])->name('promo.store');
+    Route::patch('/promo-reguler/{id}', [PromoController::class, 'update']);
+    Route::get('/promo-reguler/{id}', [PromoController::class, 'show']);
+    Route::delete('/promo-reguler/{id}', [PromoController::class, 'destroy']);
+
+    Route::get('/promo-customer', [PromoCustomerController::class, 'index'])->name('promo.customer.index');
+    Route::post('/promo-customer', [PromoCustomerController::class, 'store'])->name('promo.customer.store');
+    Route::patch('/promo-customer/{id}', [PromoCustomerController::class, 'update']);
+    Route::get('/promo-customer/{id}', [PromoCustomerController::class, 'show']);
+    Route::delete('/promo-customer/{id}', [PromoCustomerController::class, 'destroy']);
+
+    Route::get('/promo-flash', [PromoFlashController::class, 'index'])->name('promo.flash.index');
+    Route::post('/promo-flash', [PromoFlashController::class, 'store'])->name('promo.flash.store');
+    Route::patch('/promo-flash/{id}', [PromoFlashController::class, 'update']);
+    Route::get('/promo-flash/{id}', [PromoFlashController::class, 'show']);
+    Route::delete('/promo-flash/{id}', [PromoFlashController::class, 'destroy']);
+
+    Route::get('/promo-video', [PromoVideoController::class, 'index'])->name('promo.video.index');
+    Route::post('/promo-video', [PromoVideoController::class, 'store'])->name('promo.video.store');
+    Route::patch('/promo-video/{id}', [PromoVideoController::class, 'update']);
+    Route::get('/promo-video/{id}', [PromoVideoController::class, 'show']);
+    Route::delete('/promo-video/{id}', [PromoVideoController::class, 'destroy']);
 
     Route::get('/profile', [UserController::class, 'profile']);
 

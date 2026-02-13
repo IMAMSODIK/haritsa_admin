@@ -6,7 +6,7 @@ use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class PromoController extends Controller
+class PromoFlashController extends Controller
 {
     public function index(ApiService $api)
     {
@@ -19,11 +19,11 @@ class PromoController extends Controller
             }
 
             $promos = array_filter($result['data'] ?? [], function ($promo) {
-                return ($promo['type'] ?? null) === 'REGULER';
+                return ($promo['type'] ?? null) === 'FLASH';
             });
 
-            return view('promo.index', [
-                'pageTitle' => 'Daftar Promo',
+            return view('promo.index_flash', [
+                'pageTitle' => 'Daftar Promo Flash Sale',
                 'promos' => $promos
             ]);
         } catch (\Exception $e) {
@@ -48,10 +48,13 @@ class PromoController extends Controller
 
             $response = Http::withToken(session('accessToken'))
                 ->post(env('API_END_POINT') . '/promos', [
+                    'storeId' => (string) $r->storeId,
                     'name' => (string) $r->name,
                     'description' => (string) $r->description,
                     'bannerUrl' => (string) $r->bannerUrl,
-                    'type' => "REGULER"
+                    'startDate' => (string) $r->startDate,
+                    'endDate' => (string) $r->endDate,
+                    'type' => "FLASH"
                 ]);
 
 
@@ -104,9 +107,12 @@ class PromoController extends Controller
 
             // Kirim data ke API
             $response = $http->patch(env('API_END_POINT') . "/promos/$id", [
+                'storeId'       => (string) $r->storeId,
                 'name'          => (string) $r->name,
                 'description'   => (string) $r->description,
-                'bannerUrl'     => (string) $r->bannerUrl
+                'bannerUrl'     => (string) $r->bannerUrl,
+                'startDate'     => (string) $r->startDate,
+                'endDate'       => (string) $r->endDate,
             ]);
 
             if ($response->failed()) {

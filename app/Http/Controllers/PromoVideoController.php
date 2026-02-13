@@ -6,7 +6,7 @@ use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class PromoController extends Controller
+class PromoVideoController extends Controller
 {
     public function index(ApiService $api)
     {
@@ -19,11 +19,11 @@ class PromoController extends Controller
             }
 
             $promos = array_filter($result['data'] ?? [], function ($promo) {
-                return ($promo['type'] ?? null) === 'REGULER';
+                return ($promo['type'] ?? null) === 'VIDEO';
             });
 
-            return view('promo.index', [
-                'pageTitle' => 'Daftar Promo',
+            return view('promo.index_video', [
+                'pageTitle' => 'Daftar Promo Video',
                 'promos' => $promos
             ]);
         } catch (\Exception $e) {
@@ -50,8 +50,7 @@ class PromoController extends Controller
                 ->post(env('API_END_POINT') . '/promos', [
                     'name' => (string) $r->name,
                     'description' => (string) $r->description,
-                    'bannerUrl' => (string) $r->bannerUrl,
-                    'type' => "REGULER"
+                    'bannerUrl' => (string) $r->bannerUrl
                 ]);
 
 

@@ -1,8 +1,7 @@
 <div class="sidebar-wrapper" data-layout="stroke-svg">
     <div class="logo-wrapper">
         <a href="/dashboard">
-            <img class="img-fluid" style="width: 100px;" src="{{ asset('own_assets/logo/logo.png') }}"
-                alt="">
+            <img class="img-fluid" style="width: 100px;" src="{{ asset('own_assets/logo/logo.png') }}" alt="">
         </a>
         <div class="back-btn"><i class="fa fa-angle-left"> </i></div>
         <div class="toggle-sidebar">
@@ -35,7 +34,7 @@
                     </div>
                 </li>
 
-                <li class="sidebar-list"><i class="fa fa-thumb-tack"> </i><a class="sidebar-link sidebar-title"
+                <li class="sidebar-list"><i class="fa fa-thumb-tack"> </i><a class="sidebar-link sidebar-title link-nav"
                         href="/dashboard">
                         <svg class="stroke-icon">
                             <use href="{{ asset('dashboard_assets/assets/svg/icon-sprite.svg#stroke-home') }}"></use>
@@ -52,29 +51,29 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/users">
+                    <a class="sidebar-link sidebar-title link-nav" href="/users">
                         <i class="fa fa-users text-white"></i>
                         <span class="">Users</span>
                     </a>
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/banner">
+                    <a class="sidebar-link sidebar-title link-nav" href="/banner">
                         <i class="fa fa-picture-o text-white" aria-hidden="true"></i>
                         <span class="">Banner</span>
                     </a>
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/products">
+                    <a class="sidebar-link sidebar-title link-nav" href="/products">
                         <i class="fa fa-archive text-white" aria-hidden="true"></i>
                         <span class="">Produk</span>
                     </a>
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/stores">
-                        <i class="fa fa-store text-white"></i>
+                    <a class="sidebar-link sidebar-title link-nav" href="/stores">
+                        <i class="fa fa-shopping-bag text-white"></i>
                         <span class="">Toko (Cabang)</span>
                     </a>
                 </li>
@@ -84,25 +83,32 @@
                         <h6 class="">Marketing</h6>
                     </div>
                 </li>
-                
+
+                <li class="sidebar-list"><i class="fa fa-thumb-tack"></i><a class="sidebar-link sidebar-title"
+                        href="#">
+                        <i class="fa fa-bullhorn text-white"></i>
+                        <span>Promo </span>
+                        <div class="according-menu"><i class="fa fa-angle-right"></i></div>
+                    </a>
+                    <ul class="sidebar-submenu" style="display: none;">
+                        <li><a href="/promo-reguler">Promo Reguler</a></li>
+                        <li><a href="/promo-flash">Promo Flash</a></li>
+                        <li><a href="/promo-customer">Promo Customer</a></li>
+                        <li><a href="/promo-video">Promo Video</a></li>
+                    </ul>
+                </li>
+
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/reward-pont">
+                    <a class="sidebar-link sidebar-title link-nav" href="/reward-pont">
                         <i class="fa fa-star text-white"></i>
                         <span class="">Reward Point</span>
                     </a>
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/voucher">
-                        <i class="fa fa-ticket-alt text-white"></i>
+                    <a class="sidebar-link sidebar-title link-nav" href="/voucher">
+                        <i class="fa fa-ticket text-white"></i>
                         <span class="">Vucher</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/promo">
-                        <i class="fa fa-bullhorn text-white"></i>
-                        <span class="">Promo</span>
                     </a>
                 </li>
 
@@ -113,16 +119,16 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/materi-parenting">
-                        <i class="fa fa-bullhorn text-white"></i>
+                    <a class="sidebar-link sidebar-title link-nav" href="/materi-parenting">
+                        <i class="fa fa-book text-white"></i>
                         <span class="">Materi Parenting</span>
                     </a>
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/kuis">
-                        <i class="fa fa-bullhorn text-white"></i>
-                        <span class="">Kuis</span>
+                    <a class="sidebar-link sidebar-title link-nav" href="/kuis">
+                        <i class="fa fa-check-square text-white"></i>
+                        <span class="">Kuis Parenting</span>
                     </a>
                 </li>
 
@@ -133,7 +139,7 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title" href="/survey-layanan">
+                    <a class="sidebar-link sidebar-title link-nav" href="/survey-layanan">
                         <i class="fa fa-clipboard text-white"></i>
                         <span>Survey Layanan</span>
                     </a>

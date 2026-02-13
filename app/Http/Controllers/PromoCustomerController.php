@@ -6,12 +6,11 @@ use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class PromoController extends Controller
+class PromoCustomerController extends Controller
 {
     public function index(ApiService $api)
     {
         try {
-
             $result = $api->request('get', '/promos');
 
             if (!$result || ($result['status'] ?? null) !== 'success') {
@@ -19,11 +18,11 @@ class PromoController extends Controller
             }
 
             $promos = array_filter($result['data'] ?? [], function ($promo) {
-                return ($promo['type'] ?? null) === 'REGULER';
+                return ($promo['type'] ?? null) === 'CUSTOMER';
             });
 
-            return view('promo.index', [
-                'pageTitle' => 'Daftar Promo',
+            return view('promo.index_customer', [
+                'pageTitle' => 'Daftar Promo Customer',
                 'promos' => $promos
             ]);
         } catch (\Exception $e) {
@@ -36,22 +35,15 @@ class PromoController extends Controller
     {
         try {
 
-            $http = Http::withToken(session('accessToken'));
-
-            if ($r->hasFile('banner')) {
-                $http = $http->attach(
-                    'banner',
-                    file_get_contents($r->file('banner')->getRealPath()),
-                    $r->file('banner')->getClientOriginalName()
-                );
-            }
-
             $response = Http::withToken(session('accessToken'))
                 ->post(env('API_END_POINT') . '/promos', [
+                    'storeId' => (string) $r->storeId,
                     'name' => (string) $r->name,
                     'description' => (string) $r->description,
                     'bannerUrl' => (string) $r->bannerUrl,
-                    'type' => "REGULER"
+                    "minAge" => (int) $r->minAge,
+                    "maxAge"=> (int) $r->maxAge,
+                    'type' => "CUSTOMER"
                 ]);
 
 

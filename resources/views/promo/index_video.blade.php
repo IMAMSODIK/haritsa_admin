@@ -1,6 +1,8 @@
 @extends('layouts.template')
 
 @section('own_style')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
     <style>
         .cursor-pointer {
             cursor: pointer;
@@ -75,6 +77,22 @@
                                 {{ $promo['description'] ?? '-' }}
                             </p>
 
+                            {{-- Purchase Limit --}}
+                            {{-- <small class="text-muted">
+                                Promo untuk anak usia {{ number_format($promo['minPurchase']) }} hingga {{ number_format($promo['maxDiscount']) }}
+                            </small> --}}
+
+                            {{-- Date --}}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    {{ \Carbon\Carbon::parse($promo['startDate'])->format('d M Y H:i') }}
+                                    —
+                                    {{ \Carbon\Carbon::parse($promo['endDate'])->format('d M Y H:i') }}
+                                </small>
+                            </div>
+
+                            <div class="mt-auto"></div>
+
                             {{-- Buttons --}}
                             <button class="btn btn-outline-primary mt-3 w-100" data-bs-toggle="modal"
                                 data-bs-target="#previewPromoModal"
@@ -93,7 +111,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info text-center">
-                        Belum ada Promo Reguler
+                        Belum ada Promo Video
                     </div>
                 </div>
             @endforelse
@@ -117,7 +135,6 @@
                 <form id="addPromoForm">
 
                     <div class="modal-body">
-
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
@@ -130,10 +147,32 @@
                             <textarea class="form-control" id="promo_description"></textarea>
                         </div>
 
+                        <!-- DISCOUNT -->
+                        <div class="mb-3">
+                            <label class="form-label">Age Range</label>
+                            <div id="ageRange"></div>
+                            <div class="mt-2">
+                                <span id="ageValue"></span>
+                            </div>
+                        </div>
+
                         <!-- BANNER -->
                         <div class="mb-3">
                             <label class="form-label">Banner Promo</label>
                             <input class="form-control" id="promo_bannerUrl" placeholder="https://link-banner.jpg">
+                        </div>
+
+                        <!-- DATE -->
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label class="form-label">Tanggal Mulai</label>
+                                <input type="datetime-local" class="form-control" id="promo_startDate">
+                            </div>
+
+                            <div class="col mb-3">
+                                <label class="form-label">Tanggal Berakhir</label>
+                                <input type="datetime-local" class="form-control" id="promo_endDate">
+                            </div>
                         </div>
 
                     </div>
@@ -165,6 +204,10 @@
 
                     <p id="previewDesc"></p>
 
+                    <div id="previewDiscount" class="fw-bold"></div>
+
+                    <small id="previewDate" class="text-muted"></small>
+
                 </div>
 
             </div>
@@ -184,7 +227,6 @@
                     <input type="hidden" id="edit_id">
 
                     <div class="modal-body">
-
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
@@ -197,12 +239,33 @@
                             <textarea class="form-control" id="edit_promo_description"></textarea>
                         </div>
 
+                        <!-- DISCOUNT -->
+                        <div class="mb-3">
+                            <label class="form-label">Age Range</label>
+                            <div id="ageRangeEdit"></div>
+                            <div class="mt-2">
+                                <span id="ageValueEdit"></span>
+                            </div>
+                        </div>
+
                         <!-- BANNER URL -->
                         <div class="mb-3">
                             <label class="form-label">Banner URL</label>
                             <input type="text" class="form-control" id="edit_promo_bannerUrl"
                                 placeholder="https://link-banner.jpg">
                             <img id="edit_banner_preview" class="img-fluid mt-2" style="max-height:200px;" />
+                        </div>
+
+                        <!-- DATE -->
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label class="form-label">Tanggal Mulai</label>
+                                <input type="datetime-local" class="form-control" id="edit_promo_startDate">
+                            </div>
+                            <div class="col mb-3">
+                                <label class="form-label">Tanggal Berakhir</label>
+                                <input type="datetime-local" class="form-control" id="edit_promo_endDate">
+                            </div>
                         </div>
 
                         <div id="promoAlert"></div>
@@ -223,6 +286,53 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
+        var slider = document.getElementById('ageRange');
+        var slider2 = document.getElementById('ageRange2');
+
+        noUiSlider.create(slider, {
+            start: [0, 18],
+            connect: true,
+            range: {
+                min: 0,
+                max: 18
+            },
+            step: 1
+        });
+
+        slider.noUiSlider.on('update', function(values) {
+            document.getElementById('ageValue').innerText =
+                Math.round(values[0]) + ' - ' + Math.round(values[1]) + ' tahun';
+        });
+
+        noUiSlider.create(slider2, {
+            start: [0, 18],
+            connect: true,
+            range: {
+                min: 0,
+                max: 18
+            },
+            step: 1
+        });
+
+        slider2.noUiSlider.on('update', function(values) {
+            document.getElementById('ageValue2').innerText =
+                Math.round(values[0]) + ' - ' + Math.round(values[1]) + ' tahun';
+        });
+    </script>
+
+    <script>
+        function formatRupiah(val) {
+            return new Intl.NumberFormat('id-ID').format(val);
+        }
+
+        function cleanNumber(val) {
+            return val.replace(/\D/g, '');
+        }
+
+        $('.rupiah').on('input', function() {
+            let clean = cleanNumber(this.value);
+            this.value = clean ? formatRupiah(clean) : '';
+        });
         // $('#promo_banner').on('change', function(e) {
         //     let file = e.target.files[0];
         //     if (!file) return;
@@ -241,13 +351,20 @@
 
             let formData = new FormData();
 
+            formData.append('storeId', $('#p_storeId').val());
             formData.append('name', $('#promo_name').val());
             formData.append('description', $('#promo_description').val());
-            formData.append('bannerUrl', $('#promo_bannerUrl').val());
+            formData.append('discountType', $('#promo_discountType').val());
+            formData.append('discountValue', $('#promo_discountValue').val());
+            formData.append('minPurchase', cleanNumber($('#promo_minPurchase').val()));
+            formData.append('maxDiscount', cleanNumber($('#promo_maxDiscount').val()));
+            formData.append('startDate', new Date($('#promo_startDate').val()).toISOString());
+            formData.append('endDate', new Date($('#promo_endDate').val()).toISOString());
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            formData.append('bannerUrl', $('#promo_bannerUrl').val());
 
             $.ajax({
-                url: '/promo-reguler',
+                url: '/promo-customer',
                 method: 'POST',
                 data: formData,
                 processData: false,
@@ -270,12 +387,77 @@
     </script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function loadStores() {
+
+            $('#storeList').html('<div class="text-center p-3">Loading...</div>');
+
+            $.get('/products/stores', function(res) {
+
+                let html = '';
+
+                res.data.forEach(store => {
+                    html += `
+                <div class="card mb-2 cursor-pointer store-item"
+                     data-id="${store.id}"
+                     data-name="${store.name}">
+                    <div class="card-body">
+                        <b>${store.name}</b><br>
+                        <small>${store.location ?? ''}</small>
+                    </div>
+                </div>
+            `;
+                });
+
+                $('#storeList').html(html || '<div class="text-muted">Tidak ada store</div>');
+            });
+
+        }
+
+        $('#storePickerModal').on('shown.bs.modal', function() {
+            loadStores();
+        });
+
+        $(document).on('click', '.store-item', function() {
+
+            let id = $(this).data('id');
+            let name = $(this).data('name');
+
+            $('#p_storeId').val(id);
+            $('#p_storeName').val(name);
+
+            let picker = bootstrap.Modal.getInstance(
+                document.getElementById('storePickerModal')
+            );
+
+            picker.hide();
+
+            // buka lagi modal tambah produk
+            setTimeout(() => {
+                let addModal = new bootstrap.Modal(
+                    document.getElementById('addPromoModal') // ✅ FIX ID
+                );
+                addModal.show();
+            }, 200);
+
+        });
+    </script>
 
     <script>
         function previewPromo(promo) {
 
             document.getElementById('previewTitle').innerText = promo.name;
             document.getElementById('previewDesc').innerText = promo.description ?? '-';
+
+            let discount =
+                promo.discountType === 'PERCENTAGE' ?
+                `Diskon ${promo.discountValue}%` :
+                `Diskon Rp ${promo.discountValue.toLocaleString()}`;
+
+            document.getElementById('previewDiscount').innerText = discount;
+
+            document.getElementById('previewDate').innerText =
+                `${new Date(promo.startDate).toLocaleString()} - ${new Date(promo.endDate).toLocaleString()}`;
 
             if (promo.bannerUrl) {
                 document.getElementById('previewBanner').src = promo.bannerUrl;
@@ -286,15 +468,23 @@
         }
 
         function editPromo(id) {
-            $.get(`/promo-reguler/${id}`, function(res) {
+            $.get(`/promo-customer/${id}`, function(res) {
                 let p = res.data;
 
                 $('#edit_id').val(id);
+                $('#edit_storeId').val(p.storeId);
                 $('#edit_promo_name').val(p.name);
                 $('#edit_promo_description').val(p.description);
-                
+                $('#edit_promo_discountType').val(p.discountType);
+                $('#edit_promo_discountValue').val(p.discountValue);
+                $('#edit_promo_minPurchase').val(p.minPurchase);
+                $('#edit_promo_maxDiscount').val(p.maxDiscount);
+
                 $('#edit_promo_bannerUrl').val(p.bannerUrl);
                 $('#edit_banner_preview').attr('src', p.bannerUrl || '');
+
+                $('#edit_promo_startDate').val(p.startDate.slice(0, 16));
+                $('#edit_promo_endDate').val(p.endDate.slice(0, 16));
 
                 $('#editPromoModal').modal('show');
             });
@@ -311,11 +501,18 @@
             e.preventDefault();
 
             $.ajax({
-                url: `/promo-reguler/${$('#edit_id').val()}`,
+                url: `/promo-customer/${$('#edit_id').val()}`,
                 method: 'patch',
                 data: {
+                    storeId: $('#edit_storeId').val(),
                     name: $('#edit_promo_name').val(),
                     description: $('#edit_promo_description').val(),
+                    discountType: $('#edit_promo_discountType').val(),
+                    discountValue: $('#edit_promo_discountValue').val(),
+                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
+                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
+                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
+                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
                     bannerUrl: $('#edit_promo_bannerUrl').val(),
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
@@ -346,6 +543,52 @@
             }
         });
 
+        // Submit form update
+        $('#editPromoForm').on('submit', async function(e) {
+            e.preventDefault();
+
+            let bannerFile = $('#edit_promo_banner')[0].files[0];
+            let bannerBase64 = $('#edit_banner_preview').attr('src') || '';
+
+            if (bannerFile) {
+                bannerBase64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = err => reject(err);
+                    reader.readAsDataURL(bannerFile);
+                });
+            }
+
+            $.ajax({
+                url: `/promo-customer/${$('#edit_id').val()}`,
+                method: 'PUT',
+                data: {
+                    storeId: $('#edit_storeId').val(),
+                    name: $('#edit_promo_name').val(),
+                    description: $('#edit_promo_description').val(),
+                    discountType: $('#edit_promo_discountType').val(),
+                    discountValue: $('#edit_promo_discountValue').val(),
+                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
+                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
+                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
+                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
+                    banner: bannerBase64,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    Swal.fire('Berhasil!', res.message, 'success')
+                        .then(() => location.reload());
+                },
+                error: function(xhr) {
+                    $('#promoAlert').html(`
+                <div class="alert alert-danger">
+                    ${xhr.responseJSON?.server || 'Gagal update promo'}
+                </div>
+            `);
+                }
+            });
+        });
+
         function deletePromo(id, btn) {
             event.stopPropagation(); // supaya card tidak ikut ter-klik
 
@@ -361,7 +604,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/promo-reguler/${id}`,
+                        url: `/promo-customer/${id}`,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')
