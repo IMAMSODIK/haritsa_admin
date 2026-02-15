@@ -64,22 +64,27 @@ class ArtikelController extends Controller
         try {
 
             $response = Http::withToken(session('accessToken'))
-                ->get(env('API_END_POINT') . "/parenting/article/$id");
+                ->get(env('API_END_POINT') . "/survey/$id");
 
             if ($response->failed()) {
                 return response()->json([
-                    'server' => 'Gagal mengambil data Artikel'
-                ], 500);
+                    'server' => $response->json()['message'] ?? 'Gagal mengambil data survey'
+                ], $response->status());
             }
 
-            return response()->json($response->json());
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'] ?? null
+            ]);
         } catch (\Exception $e) {
 
             return response()->json([
+                'server' => 'Server survey tidak bisa dihubungi',
                 'debug' => $e->getMessage()
             ], 500);
         }
     }
+
 
     public function preview($id)
     {
@@ -106,34 +111,35 @@ class ArtikelController extends Controller
     public function update(Request $r, $id)
     {
         try {
-            $http = Http::withToken(session('accessToken'));
 
-            $response = $http->patch(env('API_END_POINT') . "/parenting/article/$id", [
-                'title'     => $r->title,
-                'content'   => $r->content,
-                'moderator' => $r->moderator,
-                'videoUrl'  => $r->videoUrl,
-                'score'     => $r->score,
-                'isActive'  => $r->isActive
-            ]);
+            $payload = [
+                'title'       => $r->title,
+                'description' => $r->description,
+                'isActive'    => filter_var($r->isActive, FILTER_VALIDATE_BOOLEAN),
+                'questions'   => json_decode($r->questions, true) ?? []
+            ];
 
+            $response = Http::withToken(session('accessToken'))
+                ->patch(env('API_END_POINT') . "/survey/$id", $payload);
 
             if ($response->failed()) {
                 return response()->json([
-                    'server' => $response->json()['message'] ?? 'Gagal update video Artikel'
+                    'server' => $response->json()['message'] ?? 'Gagal update survey'
                 ], $response->status());
             }
 
             return response()->json([
                 'success' => true,
-                'message' => $response->json()['message'] ?? 'Artikel berhasil diupdate'
+                'message' => $response->json()['message'] ?? 'Survey berhasil diupdate'
             ]);
         } catch (\Exception $e) {
+
             return response()->json([
                 'debug' => $e->getMessage()
             ], 500);
         }
     }
+
 
     public function destroy($id)
     {

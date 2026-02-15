@@ -13,6 +13,7 @@ use App\Http\Controllers\PromoCustomerController;
 use App\Http\Controllers\PromoFlashController;
 use App\Http\Controllers\PromoVideoController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SurveyLayananController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -96,6 +97,12 @@ Route::middleware('api.auth')->group(function () {
     Route::patch('/artikel-parenting/{id}', [ArtikelController::class, 'update']);
     Route::get('/artikel-parenting/{id}', [ArtikelController::class, 'show']);
     Route::delete('/artikel-parenting/{id}', [ArtikelController::class, 'destroy']);
+
+    Route::get('/survey-layanan', [SurveyLayananController::class, 'index'])->name('survey.index');
+    Route::post('/survey-layanan', [SurveyLayananController::class, 'store'])->name('survey.store');
+    Route::patch('/survey-layanan/{id}', [SurveyLayananController::class, 'update']);
+    Route::get('/survey-layanan/{id}', [SurveyLayananController::class, 'show']);
+    Route::delete('/survey-layanan/{id}', [SurveyLayananController::class, 'destroy']);
 
     Route::get('/profile', [UserController::class, 'profile']);
 
