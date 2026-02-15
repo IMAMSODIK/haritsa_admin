@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\ArtikelController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PodcastController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\PromoCustomerController;
@@ -37,6 +41,18 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/stores/{id}', [StoreController::class, 'show']);
     Route::delete('/stores/{id}', [StoreController::class, 'destroy']);
 
+    Route::get('/brand-produk', [BrandController::class, 'index'])->name('brand.index');
+    Route::post('/brand-produk', [BrandController::class, 'store'])->name('brand.store');
+    Route::patch('/brand-produk/{id}', [BrandController::class, 'update']);
+    Route::get('/brand-produk/{id}', [BrandController::class, 'show']);
+    Route::delete('/brand-produk/{id}', [BrandController::class, 'destroy']);
+
+    Route::get('/kategori-produk', [KategoriController::class, 'index'])->name('kategori.index');
+    Route::post('/kategori-produk', [KategoriController::class, 'store'])->name('kategori.store');
+    Route::patch('/kategori-produk/{id}', [KategoriController::class, 'update']);
+    Route::get('/kategori-produk/{id}', [KategoriController::class, 'show']);
+    Route::delete('/kategori-produk/{id}', [KategoriController::class, 'destroy']);
+
     Route::get('/products', [ProdukController::class, 'index'])->name('products.index');
     Route::post('/products', [ProdukController::class, 'store'])->name('products.store');
     Route::get('/products/stores', [ProdukController::class, 'getStore'])->name('products.getStore');
@@ -68,10 +84,25 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/promo-video/{id}', [PromoVideoController::class, 'show']);
     Route::delete('/promo-video/{id}', [PromoVideoController::class, 'destroy']);
 
+    // PARENTING
+    Route::get('/podcast', [PodcastController::class, 'index'])->name('podcast.index');
+    Route::post('/podcast', [PodcastController::class, 'store'])->name('podcast.store');
+    Route::patch('/podcast/{id}', [PodcastController::class, 'update']);
+    Route::get('/podcast/{id}', [PodcastController::class, 'show']);
+    Route::delete('/podcast/{id}', [PodcastController::class, 'destroy']);
+
+    Route::get('/artikel-parenting', [ArtikelController::class, 'index'])->name('artikel.index');
+    Route::post('/artikel-parenting', [ArtikelController::class, 'store'])->name('artikel.store');
+    Route::patch('/artikel-parenting/{id}', [ArtikelController::class, 'update']);
+    Route::get('/artikel-parenting/{id}', [ArtikelController::class, 'show']);
+    Route::delete('/artikel-parenting/{id}', [ArtikelController::class, 'destroy']);
+
     Route::get('/profile', [UserController::class, 'profile']);
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+Route::get('/artikel-parenting/{id}/preview', [ArtikelController::class, 'preview']);
 
 Route::middleware('api.auth')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');

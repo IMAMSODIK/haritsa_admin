@@ -78,6 +78,20 @@
                     </a>
                 </li>
 
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/brand-produk">
+                        <i class="fa fa-tags text-white"></i>
+                        <span>Brand Produk</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/kategori-produk">
+                        <i class="fa fa-list text-white"></i>
+                        <span>Kategori Produk</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-main-title">
                     <div>
                         <h6 class="">Marketing</h6>
@@ -119,9 +133,17 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title link-nav" href="/materi-parenting">
+                    <a class="sidebar-link sidebar-title link-nav" href="/podcast">
+                        <i class="fa fa-microphone text-white"></i>
+                        <span>Podcast</span>
+                    </a>
+                </li>
+
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/artikel-parenting">
                         <i class="fa fa-book text-white"></i>
-                        <span class="">Materi Parenting</span>
+                        <span class="">Artikel Parenting</span>
                     </a>
                 </li>
 
