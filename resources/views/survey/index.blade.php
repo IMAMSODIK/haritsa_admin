@@ -60,27 +60,7 @@
             @forelse ($surveys as $survey)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0 survey-card" style="cursor:pointer"
-                        onclick="editSurvey('{{ $survey['id'] }}')">
-
-                        {{-- Thumbnail --}}
-                        <div class="position-relative">
-                            @if (!empty($survey['thumbnailUrl']))
-                                <img src="{{ $survey['thumbnailUrl'] }}" class="card-img-top"
-                                    style="height:200px;object-fit:cover;">
-                            @else
-                                <div class="bg-light d-flex align-items-center justify-content-center"
-                                    style="height:200px;">
-                                    <span class="text-muted">No Thumbnail</span>
-                                </div>
-                            @endif
-
-                            {{-- Badge youtube --}}
-                            @if ($survey['videoUrl'])
-                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">
-                                    YouTube
-                                </span>
-                            @endif
-                        </div>
+                        data-survey='@json($survey)' onclick="editSurvey('{{ $survey['id'] }}')">
 
                         <div class="card-body d-flex flex-column">
 
@@ -91,7 +71,7 @@
 
                             {{-- Description --}}
                             <p class="text-muted small mb-2">
-                                {{ \Illuminate\Support\Str::words(strip_tags($survey['content'] ?? '-'), 25) }}
+                                {{ \Illuminate\Support\Str::words(strip_tags($survey['description'] ?? '-'), 25) }}
                             </p>
 
                             {{-- Created --}}
@@ -102,8 +82,9 @@
                             <div class="mt-auto"></div>
 
                             {{-- Buttons --}}
+
                             <button class="btn btn-outline-primary w-100"
-                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $survey['id'] }}/preview"'>
+                                onclick="event.stopPropagation(); previewSurvey({{ json_encode($survey) }})">
                                 Preview
                             </button>
 
@@ -125,7 +106,6 @@
             @endforelse
 
         </div>
-
 
     </div>
 
@@ -178,39 +158,31 @@
         </div>
     </div>
 
-    <div class="modal fade" id="previewArticleModal">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
+    <div class="modal fade" id="previewSurveyModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
 
-                <div class="modal-header">
-                    <h5 id="previewTitle"></h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-white" id="previewSurveyTitle"></h5>
+                    <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
 
-                    <img id="previewThumbnail" class="img-fluid rounded mb-3"
-                        style="max-height:250px;object-fit:cover;width:100%;">
+                    <!-- description -->
+                    <p id="previewSurveyDesc" class="text-muted mb-3"></p>
 
                     <!-- meta -->
-                    <div class="mb-2 text-muted small">
-                        🎙 Moderator: <span id="previewModerator"></span> |
-                        🎯 Point: <span id="previewScore"></span>
+                    <div class="small text-muted mb-3">
+                        Status:
+                        <span id="previewSurveyStatus" class="badge"></span>
                     </div>
 
-                    <!-- content -->
-                    <div id="previewContent" style="line-height:1.6;font-size:15px;"></div>
+                    <hr>
 
-                    <!-- video -->
-                    <div class="mt-3 text-center">
-                        <a id="previewVideo" class="btn btn-danger btn-sm" target="_blank">
-                            ▶ Tonton Video
-                        </a>
-                    </div>
+                    <h6 class="fw-bold mb-3">Pertanyaan Survey</h6>
 
-                    <div class="mt-3 text-muted small text-end">
-                        <span id="previewDate"></span>
-                    </div>
+                    <div id="previewSurveyQuestions"></div>
 
                 </div>
 
@@ -223,8 +195,8 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Survey</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5>Edit Survey Layanan</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form id="editSurveyForm">
@@ -236,31 +208,35 @@
                         <!-- TITLE -->
                         <div class="mb-3">
                             <label class="form-label">Judul Survey</label>
-                            <input type="text" class="form-control" id="edit_title">
+                            <input type="text" class="form-control" id="edit_title" maxlength="200" required>
                         </div>
 
                         <!-- DESCRIPTION -->
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
+                            <label class="form-label">Deskripsi Survey</label>
                             <textarea class="form-control" id="edit_description"></textarea>
                         </div>
 
                         <!-- STATUS -->
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="edit_isActive">
-                            <label class="form-check-label">Survey Aktif</label>
+                            <label class="form-check-label">
+                                Survey Aktif
+                            </label>
                         </div>
 
                         <hr>
 
                         <h6>Pertanyaan Survey</h6>
+
+                        <!-- QUESTIONS -->
                         <div id="edit_questions"></div>
 
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addEditQuestion()">
+                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addEditQuestion()">
                             + Tambah Pertanyaan
                         </button>
 
-                        <div id="editAlert"></div>
+                        <div id="editAlert" class="mt-3"></div>
 
                     </div>
 
@@ -275,7 +251,6 @@
             </div>
         </div>
     </div>
-
 
     <template id="questionTemplate">
         <div class="question-card border rounded p-3 mt-3">
@@ -310,6 +285,38 @@
                 Hapus Pertanyaan
             </button>
 
+        </div>
+    </template>
+
+    <template id="editQuestionTemplate">
+        <div class="card mb-3 question-item">
+            <div class="card-body">
+
+                <input class="form-control mb-2 question-text" placeholder="Pertanyaan">
+
+                <select class="form-select mb-2 question-type">
+                    <option value="TEXT">Text</option>
+                    <option value="SINGLE_CHOICE">Single Choice</option>
+                </select>
+
+                <div class="options"></div>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-1 add-option">
+                    + Tambah Opsi
+                </button>
+
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input question-required">
+                    <label class="form-check-label">
+                        Wajib diisi
+                    </label>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-danger mt-2 remove-question">
+                    Hapus
+                </button>
+
+            </div>
         </div>
     </template>
 @endsection
@@ -358,55 +365,55 @@
             document.getElementById('questionsContainer').appendChild(template);
         }
 
-        function renderEditQuestion(q = {}) {
+        function addEditQuestion(q = {}) {
 
-            let html = `
-    <div class="card mb-3 question-item">
-        <div class="card-body">
+            let template = document
+                .getElementById('editQuestionTemplate')
+                .content.cloneNode(true);
 
-            <input class="form-control mb-2 question-text"
-                placeholder="Pertanyaan"
-                value="${q.question || ''}">
+            let card = template.querySelector('.question-item');
 
-            <select class="form-select mb-2 question-type"
-                onchange="toggleOptions(this)">
-                <option value="TEXT" ${q.type==='TEXT'?'selected':''}>Text</option>
-                <option value="SINGLE_CHOICE" ${q.type==='SINGLE_CHOICE'?'selected':''}>
-                    Single Choice
-                </option>
-            </select>
+            let text = template.querySelector('.question-text');
+            let type = template.querySelector('.question-type');
+            let required = template.querySelector('.question-required');
+            let optionsDiv = template.querySelector('.options');
 
-            <div class="options">
-                ${(q.options || []).map(opt =>
-                    `<input class="form-control mb-1 option-input" value="${opt}">`
-                ).join('')}
-            </div>
+            text.value = q.question || '';
+            type.value = q.type || 'TEXT';
+            required.checked = q.isRequired || false;
 
-            <button type="button" class="btn btn-sm btn-outline-secondary mt-1"
-                onclick="addOption(this)">
-                + Tambah Opsi
-            </button>
+            function toggleOptions() {
+                optionsDiv.innerHTML = '';
 
-            <div class="form-check mt-2">
-                <input type="checkbox" class="form-check-input question-required"
-                    ${q.isRequired?'checked':''}>
-                <label class="form-check-label">Wajib diisi</label>
-            </div>
+                if (type.value === 'SINGLE_CHOICE') {
+                    (q.options || []).forEach(opt => {
+                        let input = document.createElement('input');
+                        input.className = 'form-control mb-1 option-input';
+                        input.value = opt;
+                        optionsDiv.appendChild(input);
+                    });
+                }
+            }
 
-            <button type="button" class="btn btn-sm btn-danger mt-2"
-                onclick="$(this).closest('.question-item').remove()">
-                Hapus
-            </button>
+            toggleOptions();
 
-        </div>
-    </div>`;
+            type.addEventListener('change', toggleOptions);
 
-            $('#edit_questions').append(html);
+            template.querySelector('.add-option')
+                .addEventListener('click', () => {
+                    let input = document.createElement('input');
+                    input.className = 'form-control mb-1 option-input';
+                    input.placeholder = 'Opsi';
+                    optionsDiv.appendChild(input);
+                });
+
+            template.querySelector('.remove-question')
+                .addEventListener('click', () => card.remove());
+
+            document.getElementById('edit_questions')
+                .appendChild(template);
         }
 
-        function addEditQuestion() {
-            renderEditQuestion();
-        }
 
         function addOption(btn) {
             $(btn).siblings('.options')
@@ -423,7 +430,6 @@
                 options.hide();
             }
         }
-
 
         $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
@@ -482,18 +488,19 @@
 
     <script>
         function editSurvey(id) {
+
             $.get(`/survey-layanan/${id}`, function(res) {
 
-                let s = res.data;
+                let s = res;
 
                 $('#edit_id').val(s.id);
                 $('#edit_title').val(s.title);
                 $('#edit_description').val(s.description);
                 $('#edit_isActive').prop('checked', s.isActive);
 
-                $('#edit_questions').html('');
+                $('#edit_questions').empty();
 
-                s.questions.forEach(q => renderEditQuestion(q));
+                s.questions.forEach(q => addEditQuestion(q));
 
                 $('#editSurveyModal').modal('show');
             });
@@ -516,23 +523,25 @@
                 if (q.type === 'SINGLE_CHOICE') {
                     q.options = [];
                     $(this).find('.option-input').each(function() {
-                        q.options.push($(this).val());
+                        if ($(this).val()) q.options.push($(this).val());
                     });
                 }
 
                 questions.push(q);
             });
 
+            let payload = {
+                title: $('#edit_title').val(),
+                description: $('#edit_description').val(),
+                isActive: $('#edit_isActive').is(':checked'),
+                questions: questions
+            };
+
             $.ajax({
                 url: `/survey-layanan/${$('#edit_id').val()}`,
                 method: 'PATCH',
-                data: {
-                    title: $('#edit_title').val(),
-                    description: $('#edit_description').val(),
-                    isActive: $('#edit_isActive').is(':checked'),
-                    questions: JSON.stringify(questions),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
 
                 success: res => {
                     Swal.fire('Berhasil!', res.message, 'success')
@@ -549,13 +558,75 @@
             });
         });
 
+        function previewSurvey(survey) {
 
+            $('#previewSurveyTitle').text(survey.title);
+            $('#previewSurveyDesc').text(survey.description || '-');
+
+            $('#previewSurveyStatus')
+                .text(survey.isActive ? 'Aktif' : 'Nonaktif')
+                .toggleClass('bg-success', survey.isActive)
+                .toggleClass('bg-secondary', !survey.isActive);
+
+            let container = $('#previewSurveyQuestions');
+            container.html('');
+
+            survey.questions.forEach((q, i) => {
+
+                let card = `
+        <div class="card mb-3 shadow-sm border-0">
+            <div class="card-body">
+
+                <div class="fw-bold mb-1">
+                    ${i + 1}. ${q.question}
+                </div>
+
+                <div class="small text-muted mb-2">
+                    ${q.type === 'TEXT' ? 'Jawaban teks bebas' : 'Pilih satu jawaban'}
+                    ${q.isRequired ? ' • Wajib diisi' : ''}
+                </div>
+        `;
+
+                if (q.type === 'SINGLE_CHOICE') {
+
+                    let options = q.options;
+
+                    if (typeof options === 'string') {
+                        try {
+                            options = JSON.parse(options);
+                        } catch {
+                            options = [];
+                        }
+                    }
+
+                    if (!Array.isArray(options)) options = [];
+
+                    card += `<ul class="list-group list-group-flush">`;
+
+                    options.forEach(opt => {
+                        card += `
+                    <li class="list-group-item">
+                        🔘 ${opt}
+                    </li>
+                `;
+                    });
+
+                    card += `</ul>`;
+                }
+
+                card += `</div></div>`;
+
+                container.append(card);
+            });
+
+            $('#previewSurveyModal').modal('show');
+        }
 
         function deletePromo(id, btn) {
             event.stopPropagation();
 
             Swal.fire({
-                title: 'Yakin ingin menghapus Artikel?',
+                title: 'Yakin ingin menghapus Survey?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
@@ -566,15 +637,13 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/artikel-parenting/${id}`,
+                        url: `/survey-layanan/${id}`,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(res) {
                             Swal.fire('Terhapus!', res.message, 'success');
-
-                            // Hapus card dari DOM
                             $(btn).closest('.col-md-4').remove();
                         },
                         error: function(xhr) {

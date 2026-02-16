@@ -97,12 +97,7 @@
                     </div>
                 </div>
             @endforelse
-
-
-
         </div>
-
-
     </div>
 
     <div class="modal fade" id="addPromoModal">
@@ -133,13 +128,20 @@
                         <!-- BANNER -->
                         <div class="mb-3">
                             <label class="form-label">Banner Promo</label>
-                            <input class="form-control" id="promo_bannerUrl" placeholder="https://link-banner.jpg">
+                            <input type="file" class="form-control" id="promo_banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="bannerPreview" style="margin-top:12px; display:none;">
+                                <img id="bannerPreviewImg"
+                                    style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
                         </div>
+
 
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Simpan Promo
                         </button>
                     </div>
@@ -188,7 +190,8 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name" placeholder="Masukkan nama promo">
+                            <input type="text" class="form-control" id="edit_promo_name"
+                                placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESCRIPTION -->
@@ -199,11 +202,17 @@
 
                         <!-- BANNER URL -->
                         <div class="mb-3">
-                            <label class="form-label">Banner URL</label>
-                            <input type="text" class="form-control" id="edit_promo_bannerUrl"
-                                placeholder="https://link-banner.jpg">
-                            <img id="edit_banner_preview" class="img-fluid mt-2" style="max-height:200px;" />
+                            <label class="form-label">Banner Promo</label>
+
+                            <input type="file" class="form-control" id="edit_promo_banner" accept="image/*">
+
+                            <!-- preview -->
+                            <div id="editBannerPreviewBox" style="margin-top:12px;">
+                                <img id="edit_banner_preview" class="img-fluid"
+                                    style="max-height:200px;border-radius:10px;border:1px solid #ddd;">
+                            </div>
                         </div>
+
 
                         <div id="promoAlert"></div>
 
@@ -223,33 +232,42 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        // $('#promo_banner').on('change', function(e) {
-        //     let file = e.target.files[0];
-        //     if (!file) return;
+        $('#promo_banner').on('change', function() {
+            let file = this.files[0];
 
-        //     let reader = new FileReader();
-        //     reader.onload = function(ev) {
-        //         $('#promo_preview')
-        //             .attr('src', ev.target.result)
-        //             .removeClass('d-none');
-        //     };
-        //     reader.readAsDataURL(file);
-        // });
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#bannerPreviewImg').attr('src', e.target.result);
+                $('#bannerPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
 
         $('#addPromoForm').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = new FormData();
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
 
-            formData.append('name', $('#promo_name').val());
-            formData.append('description', $('#promo_description').val());
-            formData.append('bannerUrl', $('#promo_bannerUrl').val());
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            let fd = new FormData();
+
+            fd.append('name', $('#promo_name').val());
+            fd.append('description', $('#promo_description').val());
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let banner = $('#promo_banner')[0].files[0];
+            if (banner) {
+                fd.append('banner', banner);
+            }
 
             $.ajax({
                 url: '/promo-reguler',
                 method: 'POST',
-                data: formData,
+                data: fd,
                 processData: false,
                 contentType: false,
 
@@ -285,6 +303,22 @@
             }
         }
 
+        $('#edit_promo_banner').on('change', function() {
+            let file = this.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#edit_banner_preview')
+                    .attr('src', e.target.result)
+                    .hide()
+                    .fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
         function editPromo(id) {
             $.get(`/promo-reguler/${id}`, function(res) {
                 let p = res.data;
@@ -292,32 +326,40 @@
                 $('#edit_id').val(id);
                 $('#edit_promo_name').val(p.name);
                 $('#edit_promo_description').val(p.description);
-                
-                $('#edit_promo_bannerUrl').val(p.bannerUrl);
+
+                // tampilkan banner lama
                 $('#edit_banner_preview').attr('src', p.bannerUrl || '');
 
                 $('#editPromoModal').modal('show');
             });
         }
 
-        // Preview banner saat link diubah
-        $('#edit_promo_bannerUrl').on('input', function() {
-            let url = $(this).val();
-            $('#edit_banner_preview').attr('src', url);
-        });
 
-        // Submit form update
         $('#editPromoForm').on('submit', function(e) {
             e.preventDefault();
 
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
+
+            let fd = new FormData();
+
+            fd.append('name', $('#edit_promo_name').val());
+            fd.append('description', $('#edit_promo_description').val());
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let banner = $('#edit_promo_banner')[0].files[0];
+            if (banner) {
+                fd.append('banner', banner);
+            }
+
             $.ajax({
                 url: `/promo-reguler/${$('#edit_id').val()}`,
-                method: 'patch',
-                data: {
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    bannerUrl: $('#edit_promo_bannerUrl').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                method: 'POST', // Laravel trick
+                data: fd,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
                 },
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
@@ -333,18 +375,6 @@
             });
         });
 
-
-        // Preview banner sebelum submit
-        $('#edit_promo_banner').on('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#edit_banner_preview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
 
         function deletePromo(id, btn) {
             event.stopPropagation(); // supaya card tidak ikut ter-klik

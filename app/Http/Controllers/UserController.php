@@ -13,8 +13,11 @@ class UserController extends Controller
 
             $result = $api->request('get', '/users');
 
+            $users = $result['data'] ?? [];
+
             return view('user.index', [
-                'pageTitle' => 'Daftar Pengguna'
+                'pageTitle' => 'Daftar Pengguna',
+                'users' => $users
             ]);
         } catch (\Exception $e) {
 

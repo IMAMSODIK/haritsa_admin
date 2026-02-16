@@ -48,7 +48,7 @@
                 <div class="card-body">
                     <div class="col-12">
                         <div class="table-container table-responsive">
-                            <table id="dataTable" class="table table-striped table-hover" style="width:100%">
+                            <table id="dataTable" class="table table-striped table-hover align-middle text-center">
                                 <thead class="text-center">
                                     <tr>
                                         <th style="width: 60px;">No</th>
@@ -60,10 +60,35 @@
                                 </thead>
 
                                 <tbody>
-                                    @php $index = 1; @endphp
+                                    @forelse ($users as $i => $user)
+                                        <tr>
+                                            <td class="text-center">{{ $i + 1 }}</td>
+                                            <td>{{ $user['username'] }}</td>
+                                            <td>{{ $user['phone'] }}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary">
+                                                    {{ $user['role']['name'] ?? '-' }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    Edit
+                                                </button>
 
-
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    Hapus
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                Tidak ada data pengguna
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
+
                             </table>
 
                         </div>

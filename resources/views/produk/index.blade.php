@@ -7,6 +7,52 @@
             cursor: pointer;
         }
 
+        .product-card {
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* image container */
+        .product-image {
+            height: 200px;
+            overflow: hidden;
+            background: #f8f8f8;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+
+        /* text */
+        .product-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        /* price */
+        .price {
+            font-weight: bold;
+            font-size: 18px;
+            color: #16a34a;
+        }
+
+
         .photo-item {
             transition: all 0.35s ease;
         }
@@ -14,6 +60,18 @@
         .photo-remove {
             opacity: 0;
             transform: scale(0.7);
+        }
+
+        .promo-price {
+            font-weight: bold;
+            font-size: 18px;
+            color: #16a34a;
+        }
+
+        .original-price {
+            font-size: 13px;
+            color: #999;
+            text-decoration: line-through;
         }
     </style>
 @endsection
@@ -65,27 +123,59 @@
                     $photo = $p['photos'][0]['photoUrl'] ?? 'https://via.placeholder.com/400';
                 @endphp
 
-                <div class="col-md-3">
-                    <div class="card h-100 shadow-sm product-card" data-product='@json($p)'>
-                        <img src="{{ $photo }}" class="card-img-top" style="height:200px; object-fit:cover;">
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm product-card" data-product='@json($p)'>
 
+                        <!-- IMAGE -->
+                        <div class="product-image">
+                            <img src="{{ $photo }}">
+                        </div>
+
+                        <!-- BODY -->
                         <div class="card-body d-flex flex-column">
-                            <b>{{ $p['name'] }}</b><br>
-                            <small class="text-muted">{{ $p['category'] ?? '-' }}</small>
-                            <div class="mt-2 text-success fw-bold">
-                                Rp {{ number_format($p['price'], 0, ',', '.') }}
+
+                            <div class="product-title">
+                                {{ $p['brand']['name'] ?? '-' }}
                             </div>
 
-                            <div class="mt-auto d-flex gap-2">
-                                <button class="btn btn-outline-primary w-100 edit-produk"
-                                    onclick="editProduct('{{ $p['id'] }}', this, event)" style="margin-bottom: 5px;">
-                                    Edit
+                            <small class="text-muted mb-2">
+                                {{ $p['name'] }}
+                            </small>
+
+                            <small class="text-muted mb-2 badge bg-light">
+                                {{ $p['category']['name'] ?? '-' }}
+                            </small>
+
+                            <div class="price">
+
+                                @if ($p['promoPrice'] && $p['promoPrice'] < $p['price'])
+                                    <div class="promo-price">
+                                        Rp {{ number_format($p['promoPrice'], 0, ',', '.') }}
+                                    </div>
+
+                                    <div class="original-price">
+                                        Rp {{ number_format($p['price'], 0, ',', '.') }}
+                                    </div>
+                                @else
+                                    <div class="promo-price">
+                                        Rp {{ number_format($p['price'], 0, ',', '.') }}
+                                    </div>
+                                @endif
+
+                            </div>
+
+
+                            <!-- BUTTONS -->
+                            <div class="mt-auto d-flex gap-2 pt-3">
+                                <button class="btn btn-light border w-100 edit-produk"
+                                    onclick="editProduct('{{ $p['id'] }}', this, event)">Edit
                                 </button>
-                                <button class="btn btn-outline-danger w-100"
-                                    onclick="deleteProduct('{{ $p['id'] }}', this)">
-                                    Hapus
+
+                                <button class="btn btn-light border text-danger w-100"
+                                    onclick="deleteProduct('{{ $p['id'] }}', this)">Hapus
                                 </button>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -98,9 +188,7 @@
                 </div>
             @endforelse
 
-
         </div>
-
 
     </div>
 
@@ -873,10 +961,10 @@
                 $('#edit_sku').val(p.sku);
                 $('#edit_name').val(p.name);
                 $('#edit_description').val(p.description);
-                $('#p_editCategoryId').val(p.categoryId || '');
-                $('#p_editCategory').val(p.categoryId || '');
-                $('#p_editBrandId').val(p.brandId || '');
-                $('#p_editBrand').val(p.brandId || '');
+                $('#p_editCategoryId').val(p.category.id || '');
+                $('#p_editCategory').val(p.category.name || '');
+                $('#p_editBrandId').val(p.brand.id || '');
+                $('#p_editBrand').val(p.brand.name || '');
                 $('#edit_price').val(p.price);
                 $('#edit_promoPrice').val(p.promoPrice);
                 $('#edit_stock').val(p.stock);

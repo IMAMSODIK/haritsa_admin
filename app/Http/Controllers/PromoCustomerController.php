@@ -35,20 +35,28 @@ class PromoCustomerController extends Controller
     {
         try {
 
-            $response = Http::withToken(session('accessToken'))
-                ->post(env('API_END_POINT') . '/promos', [
-                    'storeId' => (string) $r->storeId,
-                    'name' => (string) $r->name,
-                    'description' => (string) $r->description,
-                    'bannerUrl' => (string) $r->bannerUrl,
-                    "minAge" => (int) $r->minAge,
-                    "maxAge"=> (int) $r->maxAge,
-                    "startDate" => (string) $r->startDate,
-                    "endDate" => (string) $r->endDate,
-                    'type' => "CUSTOMER"
-                ]);
+            $http = Http::withToken(session('accessToken'));
 
+            // attach banner jika ada
+            if ($r->hasFile('banner')) {
+                $http = $http->attach(
+                    'banner',
+                    file_get_contents($r->file('banner')->getRealPath()),
+                    $r->file('banner')->getClientOriginalName()
+                );
+            }
 
+            // kirim request pakai $http yang sudah attach
+            $response = $http->post(env('API_END_POINT') . '/promos', [
+                'storeId'     => (string) $r->storeId,
+                'name'        => (string) $r->name,
+                'description' => (string) $r->description,
+                'minAge'      => (int) $r->minAge,
+                'maxAge'      => (int) $r->maxAge,
+                'startDate'   => (string) $r->startDate,
+                'endDate'     => (string) $r->endDate,
+                'type'        => "CUSTOMER"
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
@@ -67,6 +75,7 @@ class PromoCustomerController extends Controller
             ], 500);
         }
     }
+
 
     public function show($id)
     {
@@ -93,17 +102,22 @@ class PromoCustomerController extends Controller
     public function update(Request $r, $id)
     {
         try {
-            // Ambil token dari session
             $http = Http::withToken(session('accessToken'));
 
-            // Kirim data ke API
+            if ($r->hasFile('banner')) {
+                $http = $http->attach(
+                    'banner',
+                    file_get_contents($r->file('banner')->getRealPath()),
+                    $r->file('banner')->getClientOriginalName()
+                );
+            }
+
             $response = $http->patch(env('API_END_POINT') . "/promos/$id", [
                 'storeId' => (string) $r->storeId,
                 'name' => (string) $r->name,
                 'description' => (string) $r->description,
-                'bannerUrl' => (string) $r->bannerUrl,
                 "minAge" => (int) $r->minAge,
-                "maxAge"=> (int) $r->maxAge,
+                "maxAge" => (int) $r->maxAge,
                 "startDate" => (string) $r->startDate,
                 "endDate" => (string) $r->endDate
             ]);

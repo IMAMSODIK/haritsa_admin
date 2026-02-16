@@ -1,6 +1,8 @@
 @extends('layouts.template')
 
 @section('own_style')
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
         .podcast-card {
             transition: all .2s ease;
@@ -47,23 +49,23 @@
 
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPodcastModal">
-                    <i class="fa fa-plus"></i> Tambah Podcast
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addArticleModal">
+                    <i class="fa fa-plus"></i> Tambah Artikel
                 </button>
             </div>
         </div>
 
         <div class="row g-4">
 
-            @forelse ($podcasts as $podcast)
+            @forelse ($articles as $article)
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0 podcast-card" style="cursor:pointer"
-                        onclick="editPodcast('{{ $podcast['id'] }}')">
+                    <div class="card h-100 shadow-sm border-0 article-card" style="cursor:pointer"
+                        onclick="editArtikel('{{ $article['id'] }}')">
 
                         {{-- Thumbnail --}}
                         <div class="position-relative">
-                            @if (!empty($podcast['thumbnail']))
-                                <img src="{{ $podcast['thumbnail'] }}" class="card-img-top"
+                            @if (!empty($article['thumbnail']))
+                                <img src="{{ $article['thumbnail'] }}" class="card-img-top"
                                     style="height:200px;object-fit:cover;">
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center"
@@ -73,7 +75,7 @@
                             @endif
 
                             {{-- Badge youtube --}}
-                            @if ($podcast['videoUrl'])
+                            @if ($article['videoUrl'])
                                 <span class="badge bg-danger position-absolute top-0 end-0 m-2">
                                     YouTube
                                 </span>
@@ -84,42 +86,41 @@
 
                             {{-- Title --}}
                             <h5 class="card-title mb-1">
-                                {{ $podcast['title'] }}
+                                {{ $article['title'] }}
                             </h5>
 
                             {{-- Description --}}
                             <p class="text-muted small mb-2">
-                                {{ $podcast['description'] ?? '-' }}
+                                {{ \Illuminate\Support\Str::words(strip_tags($article['content'] ?? '-'), 25) }}
                             </p>
 
                             {{-- Meta info --}}
                             <div class="small text-muted mb-2">
-                                ⭐ Point: <strong>{{ $podcast['score'] ?? '-' }}</strong><br>
+                                ⭐ Point: <strong>{{ $article['score'] ?? '-' }}</strong><br>
                             </div>
 
                             {{-- Moderator --}}
                             <div class="small text-muted mb-2">
                                 <i class="fa fa-microphone"></i>
-                                {{ $podcast['moderator'] ?? '-' }}
+                                {{ $article['moderator'] ?? '-' }}
                             </div>
 
                             {{-- Created --}}
                             <div class="small text-muted mb-3">
-                                Dibuat {{ date('d M Y', strtotime($podcast['createdAt'])) }}
+                                Dibuat {{ date('d M Y', strtotime($article['createdAt'])) }}
                             </div>
 
                             <div class="mt-auto"></div>
 
                             {{-- Buttons --}}
-                            <button class="btn btn-outline-primary w-100" data-bs-toggle="modal"
-                                data-bs-target="#previewPromoModal"
-                                onclick='event.stopPropagation(); previewPodcast(@json($podcast))'>
-                                Preview
+                            <button class="btn btn-outline-primary w-100"
+                                onclick='event.stopPropagation();'>
+                                Sematkan Kuis
                             </button>
 
                             <button class="btn btn-outline-danger w-100 mt-2"
-                                onclick="deletePromo('{{ $podcast['id'] }}', this)">
-                                Hapus
+                                onclick="deletePromo('{{ $article['id'] }}', this)">
+                                Hapus Kuis
                             </button>
 
                         </div>
@@ -129,7 +130,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info text-center">
-                        Belum ada Podcast
+                        Belum ada Artikel
                     </div>
                 </div>
             @endforelse
@@ -139,62 +140,63 @@
 
     </div>
 
-    <div class="modal fade" id="addPodcastModal">
+    <div class="modal fade" id="addArticleModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5>Tambah Podcast Parenting</h5>
+                    <h5>Tambah Artikel Parenting</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form id="addPodcastForm" enctype="multipart/form-data">
+                <form id="addArticleForm">
 
                     <div class="modal-body">
 
                         <!-- TITLE -->
                         <div class="mb-3">
-                            <label class="form-label">Judul Podcast</label>
-                            <input type="text" class="form-control" id="podcast_title" placeholder="Masukkan judul podcast" maxlength="200" required>
+                            <label class="form-label">Judul Artikel</label>
+                            <input type="text" class="form-control" id="article_title" maxlength="200" required>
                         </div>
 
-                        <!-- DESCRIPTION -->
+                        <!-- CONTENT (RICH TEXT) -->
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="podcast_description" placeholder="Masukkan deskripsi podcast" maxlength="255" required></textarea>
+                            <label class="form-label">Isi Artikel</label>
+                            <div id="editor" style="height:200px;"></div>
                         </div>
 
                         <!-- MODERATOR -->
                         <div class="mb-3">
                             <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="podcast_moderator" placeholder="Masukkan moderator podcast" maxlength="255" required>
+                            <input type="text" class="form-control" id="article_moderator" maxlength="255" required>
                         </div>
 
-                        <!-- VIDEO URL -->
+                        <!-- VIDEO -->
                         <div class="mb-3">
-                            <label class="form-label">Link Video YouTube</label>
-                            <input type="text" class="form-control" id="podcast_videoUrl"
-                                placeholder="https://youtube.com/watch?v=..." oninput="generateThumbnail()">
+                            <label class="form-label">Link YouTube (optional)</label>
+                            <input type="text" class="form-control" id="article_videoUrl"
+                                oninput="generateThumbnailArticle()">
                         </div>
 
+                        <!-- Thumbnail preview -->
                         <div class="mb-3 text-center">
-                            <img id="thumbPreview" src="" style="max-width:100%;display:none;border-radius:8px;">
-                            <input type="hidden" id="podcast_thumbnailUrl">
+                            <img id="articleThumb" style="max-width:100%;display:none;border-radius:8px;">
+                            <input type="hidden" id="article_thumbnailUrl">
                         </div>
 
                         <!-- SCORE -->
                         <div class="mb-3">
                             <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="podcast_score" placeholder="Masukkan point podcast" min="0" required>
+                            <input type="number" class="form-control" id="article_score" min="0" required>
                         </div>
 
-                        <div id="podcastAlert"></div>
+                        <div id="articleAlert"></div>
 
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100" type="submit">
-                            Simpan Podcast
+                        <button class="btn btn-primary w-100">
+                            Simpan Artikel
                         </button>
                     </div>
 
@@ -204,8 +206,9 @@
         </div>
     </div>
 
-    <div class="modal fade" id="previewPodcastModal">
-        <div class="modal-dialog modal-lg">
+
+    <div class="modal fade" id="previewArticleModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -213,27 +216,30 @@
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body text-center">
+                <div class="modal-body">
 
-                    <img id="previewThumbnail" class="img-fluid rounded mb-3" style="max-height:250px;object-fit:cover;">
+                    <img id="previewThumbnail" class="img-fluid rounded mb-3"
+                        style="max-height:250px;object-fit:cover;width:100%;">
 
-                    <p id="previewDesc"></p>
-
-                    <div class="fw-bold mb-2">
-                        🎯 Point penting: <span id="previewScore"></span>
+                    <!-- meta -->
+                    <div class="mb-2 text-muted small">
+                        🎙 Moderator: <span id="previewModerator"></span> |
+                        🎯 Point: <span id="previewScore"></span>
                     </div>
 
-                    <div class="mb-2">
-                        🎙 Moderator: <span id="previewModerator"></span>
+                    <!-- content -->
+                    <div id="previewContent" style="line-height:1.6;font-size:15px;"></div>
+
+                    <!-- video -->
+                    <div class="mt-3 text-center">
+                        <a id="previewVideo" class="btn btn-danger btn-sm" target="_blank">
+                            ▶ Tonton Video
+                        </a>
                     </div>
 
-                    <a id="previewVideo" class="btn btn-danger btn-sm mb-2" target="_blank">
-                        ▶ Tonton Video
-                    </a>
-
-                    <br>
-
-                    <small id="previewDate" class="text-muted"></small>
+                    <div class="mt-3 text-muted small text-end">
+                        <span id="previewDate"></span>
+                    </div>
 
                 </div>
 
@@ -241,43 +247,43 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editPodcastModal">
+
+    <div class="modal fade" id="editArtikelModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Podcast</h5>
+                    <h5 class="modal-title">Edit Artikel</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form id="editPodcastForm">
+                <form id="editArtikelForm">
 
                     <input type="hidden" id="edit_id">
-                    <input type="hidden" id="edit_thumbnail">
 
                     <div class="modal-body">
 
                         <!-- TITLE -->
                         <div class="mb-3">
                             <label class="form-label">Judul</label>
-                            <input type="text" class="form-control" id="edit_title" placeholder="Masukkan judul podcast">
+                            <input type="text" class="form-control" id="edit_title">
                         </div>
 
-                        <!-- DESCRIPTION -->
+                        <!-- CONTENT -->
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="edit_description" placeholder="Masukkan deskripsi podcast"></textarea>
+                            <label class="form-label">Isi Artikel</label>
+                            <div id="edit_editor" style="height:200px;"></div>
                         </div>
 
                         <!-- MODERATOR -->
                         <div class="mb-3">
                             <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan moderator podcast">
+                            <input type="text" class="form-control" id="edit_moderator">
                         </div>
 
                         <!-- VIDEO -->
                         <div class="mb-3">
-                            <label class="form-label">Link YouTube</label>
+                            <label class="form-label">Link Video</label>
                             <input type="text" class="form-control" id="edit_videoUrl"
                                 oninput="generateEditThumbnail()">
                         </div>
@@ -290,8 +296,14 @@
 
                         <!-- SCORE -->
                         <div class="mb-3">
-                            <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="edit_score" placeholder="Masukkan point podcast">
+                            <label class="form-label">Score</label>
+                            <input type="number" class="form-control" id="edit_score">
+                        </div>
+
+                        <!-- STATUS -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_isActive">
+                            <label class="form-check-label">Aktif</label>
                         </div>
 
                         <div id="editAlert"></div>
@@ -299,8 +311,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100" type="submit">
-                            Update Podcast
+                        <button class="btn btn-primary w-100">
+                            Update Artikel
                         </button>
                     </div>
 
@@ -314,24 +326,16 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        function generateThumbnail() {
-            let url = $('#podcast_videoUrl').val();
-            let videoId = extractYouTubeId(url);
+        let quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Tulis artikel di sini...'
+        });
 
-            if (!videoId) {
-                $('#thumbPreview').hide();
-                return;
-            }
-
-            let thumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-
-            $('#thumbPreview')
-                .attr('src', thumb)
-                .show();
-
-            $('#podcast_thumbnailUrl').val(thumb);
-        }
-
+        let editQuill = new Quill('#edit_editor', {
+            theme: 'snow'
+        });
+    </script>
+    <script>
         function extractYouTubeId(url) {
             let regExp =
                 /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -340,6 +344,21 @@
             return (match && match[2].length === 11) ?
                 match[2] :
                 null;
+        }
+
+        function generateThumbnailArticle() {
+            let url = $('#article_videoUrl').val();
+            let id = extractYouTubeId(url);
+
+            if (!id) {
+                $('#articleThumb').hide();
+                return;
+            }
+
+            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+
+            $('#articleThumb').attr('src', thumb).show();
+            $('#article_thumbnailUrl').val(thumb);
         }
 
         function generateEditThumbnail() {
@@ -360,112 +379,21 @@
             $('#edit_thumbnail').val(thumb);
         }
 
-        $('#addPodcastForm').on('submit', function(e) {
+        $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
 
-            let btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Menyimpan...');
-
-            let formData = new FormData();
-
-            formData.append('title', $('#podcast_title').val());
-            formData.append('description', $('#podcast_description').val());
-            formData.append('moderator', $('#podcast_moderator').val());
-            formData.append('videoUrl', $('#podcast_videoUrl').val());
-            formData.append('score', $('#podcast_score').val());
-            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            let content = quill.root.innerHTML;
 
             $.ajax({
-                url: '/podcast',
+                url: '/artikel-parenting-parenting',
                 method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-
-                success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
-                },
-
-                error: function(xhr) {
-                    $('#podcastAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.message || 'Gagal membuat podcast'}
-                </div>
-            `);
-                }
-            });
-        });
-    </script>
-
-    <script>
-        function previewPodcast(p) {
-            console.log(p);
-            $('#previewTitle').text(p.title);
-            $('#previewDesc').text(p.description);
-            $('#previewScore').text(p.score);
-            $('#previewModerator').text(p.moderator);
-
-            $('#previewThumbnail')
-                .attr('src', p.thumbnail || '')
-                .toggle(!!p.thumbnail);
-
-            if (p.videoUrl) {
-                $('#previewVideo')
-                    .attr('href', p.videoUrl)
-                    .show();
-            } else {
-                $('#previewVideo').hide();
-            }
-
-            let date = new Date(p.createdAt);
-            $('#previewDate').text(
-                'Dibuat pada ' + date.toLocaleDateString('id-ID')
-            );
-
-            $('#previewPodcastModal').modal('show');
-        }
-
-        function editPodcast(id) {
-            $.get(`/podcast/${id}`, function(res) {
-
-                let p = res.data;
-
-                $('#edit_id').val(p.id);
-                $('#edit_title').val(p.title);
-                $('#edit_description').val(p.description);
-                $('#edit_moderator').val(p.moderator);
-                $('#edit_videoUrl').val(p.videoUrl);
-                $('#edit_score').val(p.score);
-                $('#edit_thumbnail').val(p.thumbnail);
-
-                if (p.thumbnail) {
-                    $('#edit_thumbnail_preview')
-                        .attr('src', p.thumbnail)
-                        .show();
-                }
-
-                $('#editPodcastModal').modal('show');
-            });
-        }
-
-
-        $('#editPodcastForm').on('submit', function(e) {
-            e.preventDefault();
-
-            let btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Menyimpan...');
-
-            $.ajax({
-                url: `/podcast/${$('#edit_id').val()}`,
-                method: 'PATCH',
                 data: {
-                    title: $('#edit_title').val(),
-                    description: $('#edit_description').val(),
-                    moderator: $('#edit_moderator').val(),
-                    videoUrl: $('#edit_videoUrl').val(),
-                    score: $('#edit_score').val(),
-                    thumbnailUrl: $('#edit_thumbnail').val(),
+                    title: $('#article_title').val(),
+                    content: content,
+                    moderator: $('#article_moderator').val(),
+                    videoUrl: $('#article_videoUrl').val(),
+                    score: $('#article_score').val(),
+                    thumbnailUrl: $('#article_thumbnailUrl').val(),
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
 
@@ -475,21 +403,119 @@
                 },
 
                 error: function(xhr) {
+                    $('#articleAlert').html(`
+                <div class="alert alert-danger">
+                    ${xhr.responseJSON?.server || 'Gagal membuat artikel'}
+                </div>
+            `);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        function previewArticleModal(a) {
+
+            $('#previewTitle').text(a.title);
+            $('#previewModerator').text(a.moderator);
+            $('#previewScore').text(a.score);
+
+            // rich text content
+            $('#previewContent').html(a.content);
+
+            $('#previewThumbnail')
+                .attr('src', a.thumbnailUrl || '')
+                .toggle(!!a.thumbnailUrl);
+
+            if (a.videoUrl) {
+                $('#previewVideo')
+                    .attr('href', a.videoUrl)
+                    .show();
+            } else {
+                $('#previewVideo').hide();
+            }
+
+            let date = new Date(a.createdAt);
+            $('#previewDate').text(
+                'Dibuat pada ' + date.toLocaleDateString('id-ID')
+            );
+
+            $('#previewArticleModal').modal('show');
+        }
+
+        function editArtikel(id) {
+            $.get(`/artikel-parenting/${id}`, function(res) {
+
+                let a = res.data;
+
+                $('#edit_id').val(a.id);
+                $('#edit_title').val(a.title);
+                $('#edit_moderator').val(a.moderator);
+                $('#edit_videoUrl').val(a.videoUrl);
+                $('#edit_score').val(a.score);
+                $('#edit_isActive').prop('checked', a.isActive ?? true);
+
+                if (a.thumbnail) {
+                    $('#edit_thumbnail_preview')
+                        .attr('src', a.thumbnail)
+                        .show();
+                }
+
+                // rich text content
+                editQuill.root.innerHTML = a.content || '';
+
+                $('#editArtikelModal').modal('show');
+            });
+        }
+
+        $('#editArtikelForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Updating...');
+
+            $.ajax({
+                url: `/artikel-parenting/${$('#edit_id').val()}`,
+                method: 'PATCH',
+                data: {
+                    title: $('#edit_title').val(),
+                    content: editQuill.root.innerHTML,
+                    moderator: $('#edit_moderator').val(),
+                    videoUrl: $('#edit_videoUrl').val(),
+                    score: $('#edit_score').val(),
+                    isActive: $('#edit_isActive').is(':checked'),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+
+                success: function(res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: res.message || 'Artikel berhasil diupdate',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => location.reload(), 2000);
+                },
+
+                error: function(xhr) {
+                    btn.prop('disabled', false).text('Update Artikel');
+
                     $('#editAlert').html(`
                 <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update podcast'}
+                    ${xhr.responseJSON?.server || 'Gagal update artikel'}
                 </div>
             `);
                 }
             });
         });
 
-
         function deletePromo(id, btn) {
             event.stopPropagation();
 
             Swal.fire({
-                title: 'Yakin ingin menghapus Podcast?',
+                title: 'Yakin ingin menghapus Artikel?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
@@ -500,7 +526,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/podcast/${id}`,
+                        url: `/artikel-parenting/${id}`,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')
@@ -512,7 +538,7 @@
                             $(btn).closest('.col-md-4').remove();
                         },
                         error: function(xhr) {
-                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Podcast',
+                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Artikel',
                                 'error');
                         }
                     });

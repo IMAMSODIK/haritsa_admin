@@ -316,13 +316,13 @@
 
     <!-- HERO -->
     <div class="hero-image">
-        <img src="{{ $article['thumbnailUrl'] ?? 'https://picsum.photos/800/450' }}"
+        <img src="{{ $article['thumbnail'] ?? 'https://picsum.photos/800/450' }}"
              alt="{{ $article['title'] ?? 'Artikel' }}"
              loading="lazy">
 
         <div class="category-tag">
             <i class="far fa-compass" style="margin-right: 6px;"></i>
-            ARTIKEL
+            Article for Parents
         </div>
     </div>
 
@@ -343,10 +343,12 @@
                     {{ \Carbon\Carbon::parse($article['updatedAt'])->translatedFormat('d M Y') ?? '-' }}
                 </span>
 
-                <span>
-                    <i class="far fa-star"></i>
-                    Score: {{ $article['score'] ?? 0 }}
-                </span>
+                @if ($article['score'] != 0)
+                    <span>
+                        <i class="far fa-star"></i>
+                        Point: {{ $article['score'] ?? 0 }} Haritsa Points
+                    </span>    
+                @endif
             </div>
         </div>
 
@@ -364,7 +366,7 @@
 
 <footer class="site-footer">
     <i class="far fa-copyright"></i>
-    {{ date('Y') }} Parenting Article — semua artikel untuk edukasi keluarga
+    {{ date('Y') }} Haritsa Parenting Article — semua artikel untuk edukasi keluarga
 </footer>
 
 

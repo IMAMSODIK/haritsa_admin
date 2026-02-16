@@ -145,7 +145,8 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="p_storeName" class="form-control" placeholder="Pilih toko" readonly>
+                                <input type="text" id="p_storeName" class="form-control" placeholder="Pilih toko"
+                                    readonly>
                                 <input type="hidden" id="p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -184,7 +185,13 @@
                         <!-- BANNER -->
                         <div class="mb-3">
                             <label class="form-label">Banner Promo</label>
-                            <input class="form-control" id="promo_bannerUrl" placeholder="https://link-banner.jpg">
+                            <input type="file" class="form-control" id="promo_banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="bannerPreview" style="margin-top:12px; display:none;">
+                                <img id="bannerPreviewImg"
+                                    style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <!-- DATE -->
@@ -203,7 +210,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Simpan Promo
                         </button>
                     </div>
@@ -225,8 +232,7 @@
 
                 <div class="modal-body">
 
-                    <img id="previewBanner" class="img-fluid rounded mb-3 d-none"
-                        style="object-fit:cover; width:100%;">
+                    <img id="previewBanner" class="img-fluid rounded mb-3 d-none" style="object-fit:cover; width:100%;">
 
                     <p id="previewDesc" class="text-muted"></p>
 
@@ -261,7 +267,8 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="edit_p_storeName" placeholder="Pilih Toko" class="form-control" readonly>
+                                <input type="text" id="edit_p_storeName" placeholder="Pilih Toko"
+                                    class="form-control" readonly>
                                 <input type="hidden" id="edit_p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -273,7 +280,8 @@
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" placeholder="Masukkan nama promo" id="edit_promo_name">
+                            <input type="text" class="form-control" placeholder="Masukkan nama promo"
+                                id="edit_promo_name">
                         </div>
 
                         <!-- DESCRIPTION -->
@@ -298,10 +306,15 @@
 
                         <!-- BANNER URL -->
                         <div class="mb-3">
-                            <label class="form-label">Banner URL</label>
-                            <input type="text" class="form-control" id="edit_promo_bannerUrl"
-                                placeholder="https://link-banner.jpg">
-                            <img id="edit_banner_preview" class="img-fluid mt-2" style="max-height:200px;" />
+                            <label class="form-label">Banner Promo</label>
+
+                            <input type="file" class="form-control" id="edit_promo_banner" accept="image/*">
+
+                            <!-- preview -->
+                            <div id="editBannerPreviewBox" style="margin-top:12px;">
+                                <img id="edit_banner_preview" class="img-fluid"
+                                    style="max-height:200px;border-radius:10px;border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <!-- DATE -->
@@ -426,21 +439,27 @@
             let clean = cleanNumber(this.value);
             this.value = clean ? formatRupiah(clean) : '';
         });
-        // $('#promo_banner').on('change', function(e) {
-        //     let file = e.target.files[0];
-        //     if (!file) return;
 
-        //     let reader = new FileReader();
-        //     reader.onload = function(ev) {
-        //         $('#promo_preview')
-        //             .attr('src', ev.target.result)
-        //             .removeClass('d-none');
-        //     };
-        //     reader.readAsDataURL(file);
-        // });
+        $('#promo_banner').on('change', function() {
+            let file = this.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#bannerPreviewImg').attr('src', e.target.result);
+                $('#bannerPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
 
         $('#addPromoForm').on('submit', function(e) {
             e.preventDefault();
+
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
 
             let formData = new FormData();
 
@@ -449,10 +468,14 @@
             formData.append('description', $('#promo_description').val());
             formData.append('startDate', new Date($('#promo_startDate').val()).toISOString());
             formData.append('endDate', new Date($('#promo_endDate').val()).toISOString());
-            formData.append('bannerUrl', $('#promo_bannerUrl').val());
             formData.append('minAge', $('#minAge').val());
             formData.append('maxAge', $('#maxAge').val());
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let banner = $('#promo_banner')[0].files[0];
+            if (banner) {
+                formData.append('banner', banner);
+            }
 
             $.ajax({
                 url: '/promo-customer',
@@ -569,6 +592,21 @@
             }
         }
 
+        $('#edit_promo_banner').on('change', function() {
+            let file = this.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#edit_banner_preview')
+                    .attr('src', e.target.result)
+                    .hide()
+                    .fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
 
         function editPromo(id) {
             $.get(`/promo-customer/${id}`, function(res) {
@@ -580,7 +618,6 @@
                 $('#edit_promo_name').val(p.name);
                 $('#edit_promo_description').val(p.description);
 
-                $('#edit_promo_bannerUrl').val(p.bannerUrl);
                 $('#edit_banner_preview').attr('src', p.bannerUrl || '');
 
                 // fix datetime
@@ -611,20 +648,36 @@
         $('#editPromoForm').on('submit', function(e) {
             e.preventDefault();
 
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
+
+            let fd = new FormData();
+
+            fd.append('storeId', $('#edit_p_storeId').val());
+            fd.append('name', $('#edit_promo_name').val());
+            fd.append('description', $('#edit_promo_description').val());
+            fd.append('minAge', $('#minAgeEdit').val());
+            fd.append('maxAge', $('#maxAgeEdit').val());
+
+            // amanin tanggal
+            let start = $('#edit_promo_startDate').val();
+            let end = $('#edit_promo_endDate').val();
+
+            if (start) fd.append('startDate', new Date(start).toISOString());
+            if (end) fd.append('endDate', new Date(end).toISOString());
+
+            fd.append('_method', 'PATCH');
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let banner = $('#edit_promo_banner')[0].files[0];
+            if (banner) fd.append('banner', banner);
+
             $.ajax({
                 url: `/promo-customer/${$('#edit_id').val()}`,
-                method: 'patch',
-                data: {
-                    storeId: $('#edit_p_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    bannerUrl: $('#edit_promo_bannerUrl').val(),
-                    minAge: $('#minAgeEdit').val(),
-                    maxAge: $('#maxAgeEdit').val(),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
@@ -635,71 +688,14 @@
                     ${xhr.responseJSON?.server || 'Gagal update promo'}
                 </div>
             `);
+                    btn.prop('disabled', false).text('Update Promo');
                 }
             });
         });
 
-
-        // Preview banner sebelum submit
-        $('#edit_promo_banner').on('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#edit_banner_preview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Submit form update
-        $('#editPromoForm').on('submit', async function(e) {
-            e.preventDefault();
-
-            let bannerFile = $('#edit_promo_banner')[0].files[0];
-            let bannerBase64 = $('#edit_banner_preview').attr('src') || '';
-
-            if (bannerFile) {
-                bannerBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = err => reject(err);
-                    reader.readAsDataURL(bannerFile);
-                });
-            }
-
-            $.ajax({
-                url: `/promo-customer/${$('#edit_id').val()}`,
-                method: 'PUT',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    discountType: $('#edit_promo_discountType').val(),
-                    discountValue: $('#edit_promo_discountValue').val(),
-                    minPurchase: cleanNumber($('#edit_promo_minPurchase').val()),
-                    maxDiscount: cleanNumber($('#edit_promo_maxDiscount').val()),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    banner: bannerBase64,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
-                },
-                error: function(xhr) {
-                    $('#promoAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update promo'}
-                </div>
-            `);
-                }
-            });
-        });
 
         function deletePromo(id, btn) {
-            event.stopPropagation(); // supaya card tidak ikut ter-klik
+            event.stopPropagation();
 
             Swal.fire({
                 title: 'Yakin ingin menghapus promo?',

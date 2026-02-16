@@ -88,7 +88,7 @@
                 <li class="sidebar-list">
                     <a class="sidebar-link sidebar-title link-nav" href="/products">
                         <i class="fa fa-archive text-white" aria-hidden="true"></i>
-                        <span class="">Produk</span>
+                        <span class="">Penawaran Produk</span>
                     </a>
                 </li>
 
@@ -148,7 +148,7 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title link-nav" href="/kuis">
+                    <a class="sidebar-link sidebar-title link-nav" href="/kuis-parenting">
                         <i class="fa fa-check-square text-white"></i>
                         <span class="">Kuis Parenting</span>
                     </a>

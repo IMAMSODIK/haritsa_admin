@@ -64,8 +64,8 @@
 
                         {{-- Thumbnail --}}
                         <div class="position-relative">
-                            @if (!empty($article['thumbnailUrl']))
-                                <img src="{{ $article['thumbnailUrl'] }}" class="card-img-top"
+                            @if (!empty($article['thumbnail']))
+                                <img src="{{ $article['thumbnail'] }}" class="card-img-top"
                                     style="height:200px;object-fit:cover;">
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center"
@@ -114,7 +114,7 @@
 
                             {{-- Buttons --}}
                             <button class="btn btn-outline-primary w-100"
-                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $article["id"] }}/preview"'>
+                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $article['id'] }}/preview"'>
                                 Preview
                             </button>
 
@@ -156,7 +156,7 @@
                         <!-- TITLE -->
                         <div class="mb-3">
                             <label class="form-label">Judul Artikel</label>
-                            <input type="text" class="form-control" id="article_title" maxlength="200" required>
+                            <input type="text" class="form-control" id="article_title" placeholder="Masukkan judul artikel" maxlength="200" required>
                         </div>
 
                         <!-- CONTENT (RICH TEXT) -->
@@ -168,14 +168,14 @@
                         <!-- MODERATOR -->
                         <div class="mb-3">
                             <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="article_moderator" maxlength="255" required>
+                            <input type="text" class="form-control" id="article_moderator" placeholder="Masukkan moderator" maxlength="255" required>
                         </div>
 
                         <!-- VIDEO -->
                         <div class="mb-3">
                             <label class="form-label">Link YouTube (optional)</label>
                             <input type="text" class="form-control" id="article_videoUrl"
-                                oninput="generateThumbnailArticle()">
+                                oninput="generateThumbnailArticle()" placeholder="https://example.com">
                         </div>
 
                         <!-- Thumbnail preview -->
@@ -187,7 +187,7 @@
                         <!-- SCORE -->
                         <div class="mb-3">
                             <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="article_score" min="0" required>
+                            <input type="number" class="form-control" id="article_score" placeholder="Masukkan jumlah point" min="0" required>
                         </div>
 
                         <div id="articleAlert"></div>
@@ -205,7 +205,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="previewArticleModal">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -247,7 +246,6 @@
         </div>
     </div>
 
-
     <div class="modal fade" id="editArtikelModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -266,7 +264,7 @@
                         <!-- TITLE -->
                         <div class="mb-3">
                             <label class="form-label">Judul</label>
-                            <input type="text" class="form-control" id="edit_title">
+                            <input type="text" class="form-control" id="edit_title" placeholder="Masukkan judul artikel" maxlength="200" required>
                         </div>
 
                         <!-- CONTENT -->
@@ -278,19 +276,26 @@
                         <!-- MODERATOR -->
                         <div class="mb-3">
                             <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="edit_moderator">
+                            <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan moderator">
                         </div>
 
                         <!-- VIDEO -->
                         <div class="mb-3">
                             <label class="form-label">Link Video</label>
-                            <input type="text" class="form-control" id="edit_videoUrl">
+                            <input type="text" class="form-control" id="edit_videoUrl"
+                                oninput="generateEditThumbnail()" placeholder="https://example.com">
+                        </div>
+
+                        <!-- THUMB PREVIEW -->
+                        <div class="text-center">
+                            <img id="edit_thumbnail_preview" class="img-fluid rounded"
+                                style="max-height:200px;display:none;">
                         </div>
 
                         <!-- SCORE -->
                         <div class="mb-3">
                             <label class="form-label">Score</label>
-                            <input type="number" class="form-control" id="edit_score">
+                            <input type="number" class="form-control" id="edit_score" placeholder="Masukkan point artikel" min="0">
                         </div>
 
                         <!-- STATUS -->
@@ -354,6 +359,23 @@
             $('#article_thumbnailUrl').val(thumb);
         }
 
+        function generateEditThumbnail() {
+            let url = $('#edit_videoUrl').val();
+            let id = extractYouTubeId(url);
+
+            if (!id) {
+                $('#edit_thumbnail_preview').hide();
+                return;
+            }
+
+            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+
+            $('#edit_thumbnail_preview')
+                .attr('src', thumb)
+                .show();
+
+            $('#edit_thumbnail').val(thumb);
+        }
 
         $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
@@ -361,7 +383,7 @@
             let content = quill.root.innerHTML;
 
             $.ajax({
-                url: '/artikel-parenting-parenting',
+                url: '/artikel-parenting',
                 method: 'POST',
                 data: {
                     title: $('#article_title').val(),
@@ -431,6 +453,12 @@
                 $('#edit_score').val(a.score);
                 $('#edit_isActive').prop('checked', a.isActive ?? true);
 
+                if (a.thumbnail) {
+                    $('#edit_thumbnail_preview')
+                        .attr('src', a.thumbnail)
+                        .show();
+                }
+
                 // rich text content
                 editQuill.root.innerHTML = a.content || '';
 
@@ -440,6 +468,9 @@
 
         $('#editArtikelForm').on('submit', function(e) {
             e.preventDefault();
+
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Updating...');
 
             $.ajax({
                 url: `/artikel-parenting/${$('#edit_id').val()}`,
@@ -455,11 +486,20 @@
                 },
 
                 success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: res.message || 'Artikel berhasil diupdate',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => location.reload(), 2000);
                 },
 
                 error: function(xhr) {
+                    btn.prop('disabled', false).text('Update Artikel');
+
                     $('#editAlert').html(`
                 <div class="alert alert-danger">
                     ${xhr.responseJSON?.server || 'Gagal update artikel'}
@@ -468,7 +508,6 @@
                 }
             });
         });
-
 
         function deletePromo(id, btn) {
             event.stopPropagation();

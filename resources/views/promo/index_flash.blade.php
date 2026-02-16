@@ -49,7 +49,6 @@
         </div>
 
         <div class="row g-4">
-
             @forelse ($promos as $promo)
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm promo-card" style="cursor:pointer"
@@ -133,7 +132,8 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="p_storeName" placeholder="Pilih Toko" class="form-control" readonly>
+                                <input type="text" id="p_storeName" placeholder="Pilih Toko" class="form-control"
+                                    readonly>
                                 <input type="hidden" id="p_storeId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#storePickerModal">
@@ -157,7 +157,13 @@
                         <!-- BANNER -->
                         <div class="mb-3">
                             <label class="form-label">Banner Promo</label>
-                            <input class="form-control" id="promo_bannerUrl" placeholder="https://link-banner.jpg">
+                            <input type="file" class="form-control" id="promo_banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="bannerPreview" style="margin-top:12px; display:none;">
+                                <img id="bannerPreviewImg"
+                                    style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <!-- DATE -->
@@ -250,13 +256,15 @@
                         <!-- STORE -->
                         <div class="mb-3" style="display: none">
                             <label class="form-label">Store ID</label>
-                            <input type="text" class="form-control" id="edit_storeId" placeholder="Pilih Toko" readonly>
+                            <input type="text" class="form-control" id="edit_storeId" placeholder="Pilih Toko"
+                                readonly>
                         </div>
 
                         <!-- NAME -->
                         <div class="mb-3">
                             <label class="form-label">Nama Promo</label>
-                            <input type="text" class="form-control" id="edit_promo_name" placeholder="Masukkan nama promo">
+                            <input type="text" class="form-control" id="edit_promo_name"
+                                placeholder="Masukkan nama promo">
                         </div>
 
                         <!-- DESCRIPTION -->
@@ -267,10 +275,15 @@
 
                         <!-- BANNER URL -->
                         <div class="mb-3">
-                            <label class="form-label">Banner URL</label>
-                            <input type="text" class="form-control" id="edit_promo_bannerUrl"
-                                placeholder="https://link-banner.jpg">
-                            <img id="edit_banner_preview" class="img-fluid mt-2" style="max-height:200px;" />
+                            <label class="form-label">Banner Promo</label>
+
+                            <input type="file" class="form-control" id="edit_promo_banner" accept="image/*">
+
+                            <!-- preview -->
+                            <div id="editBannerPreviewBox" style="margin-top:12px;">
+                                <img id="edit_banner_preview" class="img-fluid"
+                                    style="max-height:200px;border-radius:10px;border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <!-- DATE -->
@@ -315,18 +328,21 @@
             let clean = cleanNumber(this.value);
             this.value = clean ? formatRupiah(clean) : '';
         });
-        // $('#promo_banner').on('change', function(e) {
-        //     let file = e.target.files[0];
-        //     if (!file) return;
 
-        //     let reader = new FileReader();
-        //     reader.onload = function(ev) {
-        //         $('#promo_preview')
-        //             .attr('src', ev.target.result)
-        //             .removeClass('d-none');
-        //     };
-        //     reader.readAsDataURL(file);
-        // });
+        $('#promo_banner').on('change', function() {
+            let file = this.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#bannerPreviewImg').attr('src', e.target.result);
+                $('#bannerPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
 
         $('#addPromoForm').on('submit', function(e) {
             e.preventDefault();
@@ -339,7 +355,11 @@
             formData.append('startDate', new Date($('#promo_startDate').val()).toISOString());
             formData.append('endDate', new Date($('#promo_endDate').val()).toISOString());
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-            formData.append('bannerUrl', $('#promo_bannerUrl').val());
+
+            let banner = $('#promo_banner')[0].files[0];
+            if (banner) {
+                formData.append('banner', banner);
+            }
 
             $.ajax({
                 url: '/promo-flash',
@@ -359,6 +379,7 @@
                     ${xhr.responseJSON?.server || 'Gagal simpan promo'}
                 </div>
             `);
+                    btn.prop('disabled', false).text('Simpan Promo');
                 }
             });
         });
@@ -423,27 +444,69 @@
 
     <script>
         function previewPromo(promo) {
+            console.log(promo);
+            // TITLE
+            document.getElementById('previewTitle').innerText =
+                promo.name || 'Tanpa Judul';
 
-            document.getElementById('previewTitle').innerText = promo.name;
-            document.getElementById('previewDesc').innerText = promo.description ?? '-';
+            // DESCRIPTION
+            document.getElementById('previewDesc').innerText =
+                promo.description || '-';
 
-            let discount =
-                promo.discountType === 'PERCENTAGE' ?
-                `Diskon ${promo.discountValue}%` :
-                `Diskon Rp ${promo.discountValue.toLocaleString()}`;
+            // DISCOUNT (optional)
+            let discountText = '-';
 
-            document.getElementById('previewDiscount').innerText = discount;
+            if (promo.discountType && promo.discountValue != null) {
+                discountText =
+                    promo.discountType === 'PERCENTAGE' ?
+                    `Diskon ${promo.discountValue}%` :
+                    `Diskon Rp ${Number(promo.discountValue).toLocaleString('id-ID')}`;
+            }
+
+            document.getElementById('previewDiscount').innerText = discountText;
+
+            // DATE FORMAT
+            let start = promo.startDate ?
+                new Date(promo.startDate).toLocaleString('id-ID') :
+                '-';
+
+            let end = promo.endDate ?
+                new Date(promo.endDate).toLocaleString('id-ID') :
+                '-';
 
             document.getElementById('previewDate').innerText =
-                `${new Date(promo.startDate).toLocaleString()} - ${new Date(promo.endDate).toLocaleString()}`;
+                `${start} — ${end}`;
+
+            // BANNER
+            let banner = document.getElementById('previewBanner');
 
             if (promo.bannerUrl) {
-                document.getElementById('previewBanner').src = promo.bannerUrl;
-                document.getElementById('previewBanner').classList.remove('d-none');
+                banner.src = promo.bannerUrl;
+                banner.style.display = 'block';
             } else {
-                document.getElementById('previewBanner').classList.add('d-none');
+                banner.style.display = 'none';
             }
+
+            // SHOW MODAL
+            $('#previewPromoModal').modal('show');
         }
+
+
+        $('#edit_promo_banner').on('change', function() {
+            let file = this.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#edit_banner_preview')
+                    .attr('src', e.target.result)
+                    .hide()
+                    .fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
 
         function editPromo(id) {
             $.get(`/promo-flash/${id}`, function(res) {
@@ -453,8 +516,7 @@
                 $('#edit_storeId').val(p.storeId);
                 $('#edit_promo_name').val(p.name);
                 $('#edit_promo_description').val(p.description);
-                
-                $('#edit_promo_bannerUrl').val(p.bannerUrl);
+
                 $('#edit_banner_preview').attr('src', p.bannerUrl || '');
 
                 $('#edit_promo_startDate').val(p.startDate.slice(0, 16));
@@ -464,28 +526,34 @@
             });
         }
 
-        // Preview banner saat link diubah
-        $('#edit_promo_bannerUrl').on('input', function() {
-            let url = $(this).val();
-            $('#edit_banner_preview').attr('src', url);
-        });
-
         // Submit form update
         $('#editPromoForm').on('submit', function(e) {
             e.preventDefault();
 
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
+
+            let fd = new FormData();
+
+            fd.append('storeId', $('#edit_storeId').val());
+            fd.append('name', $('#edit_promo_name').val());
+            fd.append('description', $('#edit_promo_description').val());
+            fd.append('startDate', new Date($('#edit_promo_startDate').val()).toISOString());
+            fd.append('endDate', new Date($('#edit_promo_endDate').val()).toISOString());
+            fd.append('_method', 'PATCH');
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let banner = $('#edit_promo_banner')[0].files[0];
+            if (banner) {
+                fd.append('banner', banner);
+            }
+
             $.ajax({
                 url: `/promo-flash/${$('#edit_id').val()}`,
-                method: 'patch',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    bannerUrl: $('#edit_promo_bannerUrl').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
@@ -496,61 +564,7 @@
                     ${xhr.responseJSON?.server || 'Gagal update promo'}
                 </div>
             `);
-                }
-            });
-        });
-
-
-        // Preview banner sebelum submit
-        $('#edit_promo_banner').on('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#edit_banner_preview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Submit form update
-        $('#editPromoForm').on('submit', async function(e) {
-            e.preventDefault();
-
-            let bannerFile = $('#edit_promo_banner')[0].files[0];
-            let bannerBase64 = $('#edit_banner_preview').attr('src') || '';
-
-            if (bannerFile) {
-                bannerBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = err => reject(err);
-                    reader.readAsDataURL(bannerFile);
-                });
-            }
-
-            $.ajax({
-                url: `/promo-flash/${$('#edit_id').val()}`,
-                method: 'PUT',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    name: $('#edit_promo_name').val(),
-                    description: $('#edit_promo_description').val(),
-                    startDate: new Date($('#edit_promo_startDate').val()).toISOString(),
-                    endDate: new Date($('#edit_promo_endDate').val()).toISOString(),
-                    banner: bannerBase64,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
-                },
-                error: function(xhr) {
-                    $('#promoAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update promo'}
-                </div>
-            `);
+                    btn.prop('disabled', false).text('Update Promo');
                 }
             });
         });

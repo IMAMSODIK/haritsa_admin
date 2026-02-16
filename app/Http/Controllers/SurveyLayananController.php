@@ -19,7 +19,7 @@ class SurveyLayananController extends Controller
 
             return view('survey.index', [
                 'pageTitle' => 'Survey Layanan',
-                'surveys' => $result['data'] ?? []
+                'surveys' => $result ?? []
             ]);
         } catch (\Exception $e) {
             return back()->with('error', 'Server Survey tidak bisa dihubungi');
@@ -49,6 +49,84 @@ class SurveyLayananController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $response->json()['message'] ?? 'Survey berhasil dibuat'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->get(env('API_END_POINT') . "/survey/$id");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => 'Gagal ambil survey'
+                ], $response->status());
+            }
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function update(Request $r, $id)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->patch(env('API_END_POINT') . "/survey/$id", [
+                    'title' => $r->title,
+                    'description' => $r->description,
+                    'isActive' => $r->isActive,
+                    'questions' => $r->questions
+                ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal update survey'
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Survey berhasil diupdate'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->delete(env('API_END_POINT') . "/survey/$id");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal menghapus survey'
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message'] ?? 'Survey berhasil dihapus'
             ]);
         } catch (\Exception $e) {
 

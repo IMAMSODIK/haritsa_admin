@@ -35,7 +35,6 @@ class PromoFlashController extends Controller
     public function store(Request $r)
     {
         try {
-
             $http = Http::withToken(session('accessToken'));
 
             if ($r->hasFile('banner')) {
@@ -46,18 +45,14 @@ class PromoFlashController extends Controller
                 );
             }
 
-            $response = Http::withToken(session('accessToken'))
-                ->post(env('API_END_POINT') . '/promos', [
-                    'storeId' => (string) $r->storeId,
-                    'name' => (string) $r->name,
-                    'description' => (string) $r->description,
-                    'bannerUrl' => (string) $r->bannerUrl,
-                    'startDate' => (string) $r->startDate,
-                    'endDate' => (string) $r->endDate,
-                    'type' => "FLASH"
-                ]);
-
-
+            $response = $http->post(env('API_END_POINT') . '/promos', [
+                'storeId'    => (string) $r->storeId,
+                'name'       => (string) $r->name,
+                'description' => (string) $r->description,
+                'startDate'  => (string) $r->startDate,
+                'endDate'    => (string) $r->endDate,
+                'type'       => "FLASH"
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
@@ -70,12 +65,12 @@ class PromoFlashController extends Controller
                 'message' => $response->json()['message']
             ]);
         } catch (\Exception $e) {
-
             return response()->json([
                 'debug' => $e->getMessage()
             ], 500);
         }
     }
+
 
     public function show($id)
     {
@@ -102,17 +97,23 @@ class PromoFlashController extends Controller
     public function update(Request $r, $id)
     {
         try {
-            // Ambil token dari session
             $http = Http::withToken(session('accessToken'));
 
-            // Kirim data ke API
+            // kalau ada file banner → attach
+            if ($r->hasFile('banner')) {
+                $http = $http->attach(
+                    'banner',
+                    file_get_contents($r->file('banner')->getRealPath()),
+                    $r->file('banner')->getClientOriginalName()
+                );
+            }
+
             $response = $http->patch(env('API_END_POINT') . "/promos/$id", [
-                'storeId'       => (string) $r->storeId,
-                'name'          => (string) $r->name,
-                'description'   => (string) $r->description,
-                'bannerUrl'     => (string) $r->bannerUrl,
-                'startDate'     => (string) $r->startDate,
-                'endDate'       => (string) $r->endDate,
+                'storeId'     => (string) $r->storeId,
+                'name'        => (string) $r->name,
+                'description' => (string) $r->description,
+                'startDate'   => (string) $r->startDate,
+                'endDate'     => (string) $r->endDate,
             ]);
 
             if ($response->failed()) {
@@ -131,6 +132,7 @@ class PromoFlashController extends Controller
             ], 500);
         }
     }
+
 
     public function destroy($id)
     {

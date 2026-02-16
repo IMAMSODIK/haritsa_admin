@@ -6,6 +6,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\KuisController;
 use App\Http\Controllers\PodcastController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PromoController;
@@ -107,6 +108,12 @@ Route::middleware('api.auth')->group(function () {
     Route::patch('/survey-layanan/{id}', [SurveyLayananController::class, 'update']);
     Route::get('/survey-layanan/{id}', [SurveyLayananController::class, 'show']);
     Route::delete('/survey-layanan/{id}', [SurveyLayananController::class, 'destroy']);
+
+    Route::get('/kuis-parenting', [KuisController::class, 'index'])->name('kuis.index');
+    Route::post('/kuis-parenting', [KuisController::class, 'store'])->name('kuis.store');
+    Route::patch('/kuis-parenting/{id}', [KuisController::class, 'update']);
+    Route::get('/kuis-parenting/{id}', [KuisController::class, 'show']);
+    Route::delete('/kuis-parenting/{id}', [KuisController::class, 'destroy']);
 
     Route::get('/profile', [UserController::class, 'profile']);
 

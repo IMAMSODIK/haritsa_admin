@@ -58,17 +58,16 @@ class ArtikelController extends Controller
         }
     }
 
-
     public function show($id)
     {
         try {
 
             $response = Http::withToken(session('accessToken'))
-                ->get(env('API_END_POINT') . "/survey/$id");
+                ->get(env('API_END_POINT') . "/parenting/article/$id");
 
             if ($response->failed()) {
                 return response()->json([
-                    'server' => $response->json()['message'] ?? 'Gagal mengambil data survey'
+                    'server' => $response->json()['message'] ?? 'Gagal mengambil data arikel'
                 ], $response->status());
             }
 
@@ -79,12 +78,11 @@ class ArtikelController extends Controller
         } catch (\Exception $e) {
 
             return response()->json([
-                'server' => 'Server survey tidak bisa dihubungi',
+                'server' => 'Server artikel tidak bisa dihubungi',
                 'debug' => $e->getMessage()
             ], 500);
         }
     }
-
 
     public function preview($id)
     {
@@ -112,34 +110,32 @@ class ArtikelController extends Controller
     {
         try {
 
-            $payload = [
-                'title'       => $r->title,
-                'description' => $r->description,
-                'isActive'    => filter_var($r->isActive, FILTER_VALIDATE_BOOLEAN),
-                'questions'   => json_decode($r->questions, true) ?? []
-            ];
-
             $response = Http::withToken(session('accessToken'))
-                ->patch(env('API_END_POINT') . "/survey/$id", $payload);
+                ->patch(env('API_END_POINT') . "/parenting/article/$id", [
+                    'title'     => (string) $r->title,
+                    'content'   => (string) $r->content,
+                    'moderator' => (string) $r->moderator,
+                    'videoUrl'  => (string) $r->videoUrl,
+                    'score'     => (int) $r->score,
+                    'isActive'  => (bool) $r->isActive
+                ]);
 
             if ($response->failed()) {
                 return response()->json([
-                    'server' => $response->json()['message'] ?? 'Gagal update survey'
+                    'server' => $response->json()['message'] ?? 'Gagal update artikel'
                 ], $response->status());
             }
 
             return response()->json([
                 'success' => true,
-                'message' => $response->json()['message'] ?? 'Survey berhasil diupdate'
+                'message' => $response->json()['message'] ?? 'Artikel berhasil diupdate'
             ]);
         } catch (\Exception $e) {
-
             return response()->json([
                 'debug' => $e->getMessage()
             ], 500);
         }
     }
-
 
     public function destroy($id)
     {
