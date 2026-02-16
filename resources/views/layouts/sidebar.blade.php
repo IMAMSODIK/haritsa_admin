@@ -65,13 +65,6 @@
                 </li>
 
                 <li class="sidebar-list">
-                    <a class="sidebar-link sidebar-title link-nav" href="/products">
-                        <i class="fa fa-archive text-white" aria-hidden="true"></i>
-                        <span class="">Produk</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-list">
                     <a class="sidebar-link sidebar-title link-nav" href="/stores">
                         <i class="fa fa-shopping-bag text-white"></i>
                         <span class="">Toko (Cabang)</span>
@@ -89,6 +82,13 @@
                     <a class="sidebar-link sidebar-title link-nav" href="/kategori-produk">
                         <i class="fa fa-list text-white"></i>
                         <span>Kategori Produk</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/products">
+                        <i class="fa fa-archive text-white" aria-hidden="true"></i>
+                        <span class="">Produk</span>
                     </a>
                 </li>
 

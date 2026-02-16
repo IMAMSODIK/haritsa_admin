@@ -62,14 +62,14 @@
                                 <tr>
                                     <td class="text-center align-middle">{{ $index++ }}</td>
 
-                                    <td class="align-middle">{{ $brand->name }}</td>
+                                    <td class="align-middle">{{ $brand['name'] }}</td>
 
                                     <td class="text-center align-middle">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-danger btn-sm delete" onclick="editStore('{{ $brand->id }}')">
-                                                Hapus
+                                            <button class="btn btn-info btn-sm edit" onclick="editStore('{{ $brand['id'] }}')">
+                                                Edit
                                             </button>
-                                            <button class="btn btn-danger btn-sm delete" id="deleteStoreBtn" data-id="{{ $brand->id }}">
+                                            <button class="btn btn-danger btn-sm delete" id="deleteStoreBtn" data-id="{{ $brand['id'] }}">
                                                 Hapus
                                             </button>
                                         </div>
@@ -102,7 +102,7 @@
 
                         <div class="mb-3">
                             <label>Nama Brand</label>
-                            <input type="text" name="name" class="form-control" required
+                            <input type="text" name="name" id="name" class="form-control" required
                                 placeholder="Masukkan nama Brand">
                         </div>
 
@@ -110,7 +110,7 @@
 
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button class="btn btn-primary">Simpan</button>
+                        <button class="btn btn-primary" type="submit">Simpan</button>
                     </div>
 
                 </div>
@@ -142,7 +142,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100 mb-1">Update Brand</button>
+                        <button class="btn btn-primary w-100 mb-1" type="submit">Update Brand</button>
                     </div>
 
                 </form>
@@ -156,17 +156,58 @@
     <script>
         $('#storeForm').on('submit', function(e) {
             e.preventDefault();
-            $.post("{{ route('brand.store') }}", $(this).serialize(), function(res) {
-                location.reload();
+            let btn = $('#storeForm button[type="submit"]');
+
+            btn.prop('disabled', true).text('Menambahkan Brand...');
+            document.body.style.cursor = 'wait';
+
+            $.ajax({
+                url: `{{ route('brand.store') }}`,
+                method: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    name: $('#name').val(),
+                },
+
+                success: function(res) {
+
+                    document.body.style.cursor = 'default';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Brand berhasil ditimabahkan',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+
+                },
+
+                error: function(xhr) {
+
+                    document.body.style.cursor = 'default';
+                    btn.prop('disabled', false).text('Menambahkan Brand');
+
+                    let msg =
+                        xhr.responseJSON?.debug ||
+                        xhr.responseJSON?.server ||
+                        xhr.responseText ||
+                        "Menambahkan brand gagal";
+
+                    $('#editAlert').html(
+                        `<div class="alert alert-danger">${msg}</div>`
+                    );
+                }
             });
         });
 
         function editStore(id) {
             document.body.style.cursor = 'wait';
 
-            $.get(`/brands/${id}`, function(res) {
+            $.get(`/brand-produk/${id}`, function(res) {
 
-                let brand = res.data;
+                let brand = res;
 
                 $('#edit_id').val(brand.id);
                 $('#edit_name').val(brand.name);
@@ -195,7 +236,7 @@
             document.body.style.cursor = 'wait';
 
             $.ajax({
-                url: `/brands/${id}`,
+                url: `/brand-produk/${id}`,
                 method: 'PATCH',
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
@@ -237,14 +278,9 @@
     </script>
 
     <script>
-        $('#deleteStoreBtn').on('click', function() {
+        $(document).on('click', '.delete', function() {
 
             let id = $(this).data('id');
-
-            // tutup modal sementara
-            let modalEl = document.getElementById('editStoreModal');
-            let modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
 
             Swal.fire({
                 title: 'Hapus Brand?',
@@ -257,15 +293,13 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (!result.isConfirmed) {
-                    modal.show();
                     return;
                 }
 
-                // cursor loading
                 document.body.style.cursor = 'wait';
 
                 $.ajax({
-                    url: `/brands/${id}`,
+                    url: `/brand-produk/${id}`,
                     method: 'DELETE',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')

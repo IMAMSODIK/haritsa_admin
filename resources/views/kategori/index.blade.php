@@ -62,14 +62,14 @@
                                 <tr>
                                     <td class="text-center align-middle">{{ $index++ }}</td>
 
-                                    <td class="align-middle">{{ $kategorie->name }}</td>
+                                    <td class="align-middle">{{ $kategorie['name'] }}</td>
 
                                     <td class="text-center align-middle">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-danger btn-sm delete" onclick="editStore('{{ $kategorie->id }}')">
-                                                Hapus
+                                            <button class="btn btn-info btn-sm edit" onclick="editStore('{{ $kategorie['id'] }}')">
+                                                Edit
                                             </button>
-                                            <button class="btn btn-danger btn-sm delete" id="deleteStoreBtn" data-id="{{ $kategorie->id }}">
+                                            <button class="btn btn-danger btn-sm delete" id="deleteStoreBtn" data-id="{{ $kategorie['id'] }}">
                                                 Hapus
                                             </button>
                                         </div>
@@ -102,7 +102,7 @@
 
                         <div class="mb-3">
                             <label>Nama Kategori</label>
-                            <input type="text" name="name" class="form-control" required
+                            <input type="text" name="name" id="name" class="form-control" required
                                 placeholder="Masukkan nama Kategori">
                         </div>
 
@@ -110,7 +110,7 @@
 
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
 
                 </div>
@@ -154,19 +154,67 @@
 
 @section('own_script')
     <script>
+        // $('#storeForm').on('submit', function(e) {
+        //     e.preventDefault();
+        //     $.post("{{ route('kategori.store') }}", $(this).serialize(), function(res) {
+        //         location.reload();
+        //     });
+        // });
+
         $('#storeForm').on('submit', function(e) {
             e.preventDefault();
-            $.post("{{ route('kategori.store') }}", $(this).serialize(), function(res) {
-                location.reload();
+            let btn = $('#storeForm button[type="submit"]');
+
+            btn.prop('disabled', true).text('Updating...');
+            document.body.style.cursor = 'wait';
+
+            $.ajax({
+                url: `{{ route('kategori.store') }}`,
+                method: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    name: $('#name').val(),
+                },
+
+                success: function(res) {
+
+                    document.body.style.cursor = 'default';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Kategori berhasil ditambahkan',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+
+                },
+
+                error: function(xhr) {
+
+                    document.body.style.cursor = 'default';
+                    btn.prop('disabled', false).text('Tambah data Kategori');
+
+                    let msg =
+                        xhr.responseJSON?.debug ||
+                        xhr.responseJSON?.server ||
+                        xhr.responseText ||
+                        "Tambah data gagal";
+
+                    $('#editAlert').html(
+                        `<div class="alert alert-danger">${msg}</div>`
+                    );
+                }
             });
         });
 
         function editStore(id) {
             document.body.style.cursor = 'wait';
 
-            $.get(`/categories/${id}`, function(res) {
+            $.get(`/kategori-produk/${id}`, function(res) {
 
-                let kat = res.data;
+                let kat = res;
 
                 $('#edit_id').val(kat.id);
                 $('#edit_name').val(kat.name);
@@ -195,7 +243,7 @@
             document.body.style.cursor = 'wait';
 
             $.ajax({
-                url: `/categories/${id}`,
+                url: `/kategori-produk/${id}`,
                 method: 'PATCH',
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
@@ -241,11 +289,6 @@
 
             let id = $(this).data('id');
 
-            // tutup modal sementara
-            let modalEl = document.getElementById('editStoreModal');
-            let modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
-
             Swal.fire({
                 title: 'Hapus Brand?',
                 text: 'Data tidak bisa dikembalikan!',
@@ -265,7 +308,7 @@
                 document.body.style.cursor = 'wait';
 
                 $.ajax({
-                    url: `/categories/${id}`,
+                    url: `/kategori-produk/${id}`,
                     method: 'DELETE',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')

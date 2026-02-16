@@ -57,9 +57,13 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/products', [ProdukController::class, 'index'])->name('products.index');
     Route::post('/products', [ProdukController::class, 'store'])->name('products.store');
     Route::get('/products/stores', [ProdukController::class, 'getStore'])->name('products.getStore');
+    Route::get('/products/categories', [ProdukController::class, 'getCategories'])->name('products.getCategories');
+    Route::get('/products/brands', [ProdukController::class, 'getBrands'])->name('products.getBrands');
     Route::patch('/products/{id}', [ProdukController::class, 'update']);
     Route::get('/products/{id}', [ProdukController::class, 'show']);
     Route::delete('/products/{id}', [ProdukController::class, 'destroy']);
+    Route::delete('/products/photos/{photo_id}', [ProdukController::class, 'destroyPhoto']);
+    Route::post('/products/{id}/photos', [ProdukController::class, 'addPhotos']);
 
     Route::get('/promo-reguler', [PromoController::class, 'index'])->name('promo.index');
     Route::post('/promo-reguler', [PromoController::class, 'store'])->name('promo.store');

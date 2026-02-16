@@ -14,13 +14,13 @@ class BrandController extends Controller
 
             $result = $api->request('get', '/brands');
 
-            if (!$result || ($result['status'] ?? null) !== 'success') {
-                return back()->with('error', 'Gagal mengambil data daftar Brand');
-            }
+            // if (!$result || ($result['status'] ?? null) !== 'success') {
+            //     return back()->with('error', 'Gagal mengambil data daftar Brand');
+            // }
 
             return view('brand.index', [
                 'pageTitle' => 'Daftar Brand',
-                'brands' => $result['data'] ?? []
+                'brands' => $result ?? []
             ]);
         } catch (\Exception $e) {
 
@@ -42,14 +42,11 @@ class BrandController extends Controller
 
             $result = $api->request('post', '/brands', $payload);
 
-            if (!$result || ($result['status'] ?? null) !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menambahkan Brand'
-                ], 500);
-            }
-
-            return response()->json($result);
+            return response()->json([
+                'status' => 1,
+                'message' => 'Kategori berhasil ditambahkan',
+                'data' => $result['data'] ?? null
+            ]);
         } catch (\Exception $e) {
 
             return response()->json([

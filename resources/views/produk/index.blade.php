@@ -6,6 +6,15 @@
         .cursor-pointer {
             cursor: pointer;
         }
+
+        .photo-item {
+            transition: all 0.35s ease;
+        }
+
+        .photo-remove {
+            opacity: 0;
+            transform: scale(0.7);
+        }
     </style>
 @endsection
 
@@ -194,7 +203,26 @@
                         <!-- KATEGORI -->
                         <div class="mb-3">
                             <label class="form-label">Kategori</label>
-                            <input class="form-control" id="p_category" placeholder="Kategori produk">
+                            <div class="input-group">
+                                <input class="form-control" id="p_category" placeholder="Kategori produk">
+                                <input type="hidden" id="p_categoryId">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#categoryPickerModal">
+                                    Pilih
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pilih Brand</label>
+                            <div class="input-group">
+                                <input class="form-control" id="p_brand" placeholder="Brand produk" readonly>
+                                <input type="hidden" id="p_brandId">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#brandPickerModal">
+                                    Pilih
+                                </button>
+                            </div>
                         </div>
 
                         <!-- HARGA -->
@@ -223,9 +251,11 @@
 
                         <!-- FOTO URL -->
                         <div class="mb-3">
-                            <label class="form-label">Foto Produk (pisahkan koma untuk multiple)</label>
-                            <input type="text" id="p_photos" class="form-control"
-                                placeholder="https://link1.jpg, https://link2.jpg">
+                            <label class="form-label">Upload Foto Produk (max 5)</label>
+                            <input type="file" id="p_photos" class="form-control" multiple accept="image/*">
+                            <small class="text-muted">Maksimal 5 gambar</small>
+
+                            <div id="photoPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
                         </div>
 
                         <div id="addProductAlert"></div>
@@ -288,8 +318,27 @@
 
                         <!-- Kategori -->
                         <div class="mb-3">
-                            <label class="form-label">Kategori</label>
-                            <input class="form-control" id="edit_category">
+                            <label class="form-label">Pilih Kategori</label>
+                            <div class="input-group">
+                                <input class="form-control" id="p_editCategory" placeholder="Kategori produk" readonly>
+                                <input type="hidden" id="p_editCategoryId">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#categoryPickerModal">
+                                    Pilih
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pilih Brand</label>
+                            <div class="input-group">
+                                <input class="form-control" id="p_editBrand" placeholder="Brand produk" readonly>
+                                <input type="hidden" id="p_editBrandId">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#brandPickerModal">
+                                    Pilih
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Harga -->
@@ -318,9 +367,13 @@
 
                         <!-- Foto URL -->
                         <div class="mb-3">
-                            <label class="form-label">Foto Produk (pisahkan koma)</label>
-                            <input type="text" id="edit_photos" class="form-control"
-                                placeholder="https://link1.jpg, https://link2.jpg">
+                            <label class="form-label">Foto Produk</label>
+                            <div id="existingPhotos" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+                            <input type="file" id="newPhotos" class="form-control" multiple accept="image/*">
+                            <small class="text-muted">Tambah foto baru</small>
+
+                            <div id="newPhotoPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
 
                         <div id="editProductAlert"></div>
@@ -356,12 +409,55 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="categoryPickerModal" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5>Pilih Kategori</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {{-- <input type="text" id="storeSearch" class="form-control mb-3" placeholder="Cari store..."> --}}
+
+                    <div id="kategoriList" style="max-height:400px; overflow:auto;"></div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="brandPickerModal" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5>Pilih Brand</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {{-- <input type="text" id="storeSearch" class="form-control mb-3" placeholder="Cari store..."> --}}
+
+                    <div id="brandList" style="max-height:400px; overflow:auto;"></div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         let modal = "addStoreModal";
+
         $(".add-produk").on("click", function() {
             modal = "addStoreModal";
         });
@@ -383,31 +479,116 @@
             this.value = clean ? formatRupiah(clean) : '';
         });
 
+        let selectedFiles = [];
+
         $('#p_photos').on('change', function() {
+            let newFiles = Array.from(this.files);
 
-            let files = Array.from(this.files);
-
-            if (files.length > 5) {
-                alert('Maksimal 5 foto');
+            // cek limit
+            if (selectedFiles.length + newFiles.length > 5) {
+                alert('Maksimal 5 foto!');
                 this.value = '';
-                $('#photoPreview').html('');
                 return;
             }
 
-            $('#photoPreview').html('');
+            selectedFiles = selectedFiles.concat(newFiles);
+            renderPreview();
 
-            files.forEach(file => {
+            this.value = ''; // reset input biar bisa pilih file yang sama lagi
+        });
+
+        function renderPreview() {
+            let preview = $('#photoPreview');
+            preview.html('');
+
+            selectedFiles.forEach((file, index) => {
                 let reader = new FileReader();
-                reader.onload = e => {
-                    $('#photoPreview').append(`
-                <img src="${e.target.result}"
-                     style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+
+                reader.onload = function(e) {
+                    preview.append(`
+                <div style="position:relative">
+                    <img src="${e.target.result}"
+                        style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+
+                    <button type="button"
+                        onclick="removePhoto(${index})"
+                        style="
+                            position:absolute;
+                            top:-6px;
+                            right:-6px;
+                            background:red;
+                            color:white;
+                            border:none;
+                            border-radius:50%;
+                            width:22px;
+                            height:22px;
+                            font-size:12px;
+                            cursor:pointer;">
+                        ×
+                    </button>
+                </div>
             `);
                 };
+
                 reader.readAsDataURL(file);
             });
+        }
 
-        });
+        function removePhoto(index) {
+            selectedFiles.splice(index, 1);
+            renderPreview();
+        }
+
+
+        function loadBrand() {
+
+            $('#brandList').html('<div class="text-center p-3">Loading...</div>');
+
+            $.get('/products/brands', function(res) {
+
+                let html = '';
+
+                res.forEach(cat => {
+                    html += `
+                <div class="card mb-2 cursor-pointer brand-item"
+                     data-id="${cat.id}"
+                     data-name="${cat.name}">
+                    <div class="card-body">
+                        <b>${cat.name}</b><br>
+                    </div>
+                </div>
+            `;
+                });
+
+                $('#brandList').html(html || '<div class="text-muted">Tidak ada brand</div>');
+            });
+
+        }
+
+        function loadKategori() {
+
+            $('#kategoriList').html('<div class="text-center p-3">Loading...</div>');
+
+            $.get('/products/categories', function(res) {
+
+                let html = '';
+
+                res.forEach(cat => {
+                    html += `
+                <div class="card mb-2 cursor-pointer cat-item"
+                     data-id="${cat.id}"
+                     data-name="${cat.name}">
+                    <div class="card-body">
+                        <b>${cat.name}</b><br>
+                    </div>
+                </div>
+            `;
+                });
+
+                $('#kategoriList').html(html || '<div class="text-muted">Tidak ada store</div>');
+            });
+
+        }
 
         function loadStores() {
 
@@ -439,6 +620,14 @@
             loadStores();
         });
 
+        $('#categoryPickerModal').on('shown.bs.modal', function() {
+            loadKategori();
+        });
+
+        $('#brandPickerModal').on('shown.bs.modal', function() {
+            loadBrand();
+        });
+
         // $('#storeSearch').on('input', function() {
         //     loadStores($(this).val());
         // });
@@ -448,10 +637,10 @@
             let id = $(this).data('id');
             let name = $(this).data('name');
 
-            if(modal === 'editProductModal') {
+            if (modal === 'editProductModal') {
                 $('#edit_storeId').val(id);
                 $('#edit_storeName').val(name);
-            } else {    
+            } else {
                 $('#p_storeId').val(id);
                 $('#p_storeName').val(name);
             }
@@ -472,106 +661,107 @@
 
         });
 
+        $(document).on('click', '.cat-item', function() {
+
+            let id = $(this).data('id');
+            let name = $(this).data('name');
+
+            if (modal === 'editProductModal') {
+                $('#p_editCategoryId').val(id);
+                $('#p_editCategory').val(name);
+            } else {
+                $('#p_categoryId').val(id);
+                $('#p_category').val(name);
+            }
+
+            let picker = bootstrap.Modal.getInstance(
+                document.getElementById('categoryPickerModal')
+            );
+
+            picker.hide();
+
+            // buka lagi modal tambah produk
+            setTimeout(() => {
+                let addModal = new bootstrap.Modal(
+                    document.getElementById(modal)
+                );
+                addModal.show();
+            }, 200);
+
+        });
+
+        $(document).on('click', '.brand-item', function() {
+
+            let id = $(this).data('id');
+            let name = $(this).data('name');
+
+            if (modal === 'editProductModal') {
+                $('#p_editBrandId').val(id);
+                $('#p_editBrand').val(name);
+            } else {
+                $('#p_brandId').val(id);
+                $('#p_brand').val(name);
+            }
+
+            let picker = bootstrap.Modal.getInstance(
+                document.getElementById('brandPickerModal')
+            );
+
+            picker.hide();
+
+            // buka lagi modal tambah produk
+            setTimeout(() => {
+                let addModal = new bootstrap.Modal(
+                    document.getElementById(modal)
+                );
+                addModal.show();
+            }, 200);
+
+        });
+
         $('#addProductForm').on('submit', function(e) {
             e.preventDefault();
 
             let btn = $(this).find('button[type="submit"]');
             btn.prop('disabled', true).text('Menyimpan...');
 
-            let photos = $('#p_photos').val()
-                .split(',')
-                .map(url => url.trim())
-                .filter(url => url !== '');
+            let formData = new FormData();
+
+            // text data
+            formData.append('storeId', $('#p_storeId').val());
+            formData.append('sku', $('#p_sku').val());
+            formData.append('name', $('#p_name').val());
+            formData.append('description', $('#p_description').val());
+            formData.append('category', $('#p_categoryId').val());
+            formData.append('brand', $('#p_brandId').val());
+            formData.append('price', cleanNumber($('#p_price').val()));
+            formData.append('promoPrice', cleanNumber($('#p_promoPrice').val()));
+            formData.append('stock', $('#p_stock').val());
+            formData.append('version', $('#p_version').val());
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            // multiple photos
+            selectedFiles.forEach(file => {
+                formData.append('photos[]', file);
+            });
 
             $.ajax({
                 url: '/products',
                 method: 'POST',
-                data: {
-                    storeId: $('#p_storeId').val(),
-                    sku: $('#p_sku').val(),
-                    name: $('#p_name').val(),
-                    description: $('#p_description').val(),
-                    category: $('#p_category').val(),
-                    price: cleanNumber($('#p_price').val()),
-                    promoPrice: cleanNumber($('#p_promoPrice').val()),
-                    stock: $('#p_stock').val(),
-                    version: $('#p_version').val(),
-                    photos: photos, // array of URL strings
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
+
                 success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success').then(() => location.reload());
+                    Swal.fire('Berhasil!', res.message, 'success')
+                        .then(() => location.reload());
                 },
                 error: function(xhr) {
                     btn.prop('disabled', false).text('Simpan Produk');
+
                     $('#addProductAlert').html(`
                 <div class="alert alert-danger">
                     ${xhr.responseJSON?.server || 'Gagal menyimpan produk'}
-                </div>
-            `);
-                }
-            });
-        });
-
-        function editProduct(id, btn, event) {
-            event.stopPropagation(); // sekarang aman
-            $.get(`/products/${id}`, function(res) {
-                let p = res.data.data;
-
-                $('#edit_product_id').val(p.id);
-                $('#edit_storeId').val(p.store.id);
-                $('#edit_storeName').val(p.store.name || '');
-                $('#edit_sku').val(p.sku);
-                $('#edit_name').val(p.name);
-                $('#edit_description').val(p.description);
-                $('#edit_category').val(p.category);
-                $('#edit_price').val(p.price);
-                $('#edit_promoPrice').val(p.promoPrice);
-                $('#edit_stock').val(p.stock);
-                $('#edit_version').val(p.version);
-
-                // Array of URLs => string pisahkan koma
-                $('#edit_photos').val((p.photos || []).map(x => x.photoUrl).join(', '));
-
-                $('#editProductModal').modal('show');
-            }).fail(function() {
-                Swal.fire('Error', 'Gagal mengambil data produk', 'error');
-            });
-        }
-
-
-        $('#editProductForm').on('submit', function(e) {
-            e.preventDefault();
-
-            let id = $('#edit_product_id').val();
-            let photos = $('#edit_photos').val()
-                .split(',')
-                .map(url => url.trim())
-                .filter(url => url !== '');
-
-            $.ajax({
-                url: `/products/${id}`,
-                method: 'PATCH',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    sku: $('#edit_sku').val(),
-                    name: $('#edit_name').val(),
-                    description: $('#edit_description').val(),
-                    category: $('#edit_category').val(),
-                    price: cleanNumber($('#edit_price').val()),
-                    promoPrice: cleanNumber($('#edit_promoPrice').val()),
-                    stock: $('#edit_stock').val(),
-                    version: $('#edit_version').val(),
-                    photos: photos,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success').then(() => location.reload());
-                },
-                error: function(xhr) {
-                    $('#editProductAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update produk'}
                 </div>
             `);
                 }
@@ -660,6 +850,219 @@
                 document.getElementById('productPreviewModal')
             ).show();
 
+        });
+    </script>
+
+    {{-- EDIT PRODUK --}}
+    <script>
+        let shouldReload = false;
+        let newFiles = [];
+
+        function editProduct(id, btn, event) {
+            event.stopPropagation();
+
+            $.get(`/products/${id}`, function(res) {
+                let p = res.data.data;
+
+                console.log(p.categoryId)
+                console.log(p.brandId)
+
+                $('#edit_product_id').val(p.id);
+                $('#edit_storeId').val(p.store.id);
+                $('#edit_storeName').val(p.store.name || '');
+                $('#edit_sku').val(p.sku);
+                $('#edit_name').val(p.name);
+                $('#edit_description').val(p.description);
+                $('#p_editCategoryId').val(p.categoryId || '');
+                $('#p_editCategory').val(p.categoryId || '');
+                $('#p_editBrandId').val(p.brandId || '');
+                $('#p_editBrand').val(p.brandId || '');
+                $('#edit_price').val(p.price);
+                $('#edit_promoPrice').val(p.promoPrice);
+                $('#edit_stock').val(p.stock);
+                $('#edit_version').val(p.version);
+
+                renderExistingPhotos(p.photos || []);
+                newFiles = [];
+                $('#newPhotoPreview').html('');
+
+                $('#editProductModal').modal('show');
+            }).fail(() => {
+                Swal.fire('Error', 'Gagal mengambil data produk', 'error');
+            });
+        }
+
+        function renderExistingPhotos(photos) {
+            let container = $('#existingPhotos');
+            container.html('');
+
+            photos.forEach(photo => {
+                container.append(`
+            <div class="photo-item" data-id="${photo.id}" style="position:relative">
+                <img src="${photo.photoUrl}"
+                     style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+
+                <button type="button"
+                    onclick="deletePhoto('${photo.id}', event)"
+                    style="
+                        position:absolute;
+                        top:-6px;
+                        right:-6px;
+                        background:red;
+                        color:white;
+                        border:none;
+                        border-radius:50%;
+                        width:22px;
+                        height:22px;
+                        font-size:12px;">
+                    ×
+                </button>
+            </div>
+        `);
+            });
+        }
+
+
+        function deletePhoto(photoId, event) {
+            event.preventDefault();
+
+            if (!confirm('Hapus foto ini?')) return;
+
+            let el = $(`.photo-item[data-id="${photoId}"]`);
+
+            $.ajax({
+                url: `/products/photos/${photoId}`,
+                method: 'DELETE',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+                    el.addClass('photo-remove');
+
+                    setTimeout(() => {
+                        el.remove();
+                    }, 350);
+                },
+                error: function() {
+                    Swal.fire('Error', 'Gagal hapus foto', 'error');
+                }
+            });
+        }
+
+
+        $('#newPhotos').on('change', function() {
+            let files = Array.from(this.files);
+
+            newFiles = newFiles.concat(files);
+            renderNewPreview();
+
+            this.value = '';
+        });
+
+        function renderNewPreview() {
+            let preview = $('#newPhotoPreview');
+            preview.html('');
+
+            newFiles.forEach((file, i) => {
+                let reader = new FileReader();
+
+                reader.onload = e => {
+                    preview.append(`
+                <div style="position:relative">
+                    <img src="${e.target.result}"
+                         style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+
+                    <button type="button" onclick="removeNewPhoto(${i})"
+                        style="
+                            position:absolute;
+                            top:-6px;
+                            right:-6px;
+                            background:red;
+                            color:white;
+                            border:none;
+                            border-radius:50%;
+                            width:22px;
+                            height:22px;">
+                        ×
+                    </button>
+                </div>
+            `);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeNewPhoto(i) {
+            newFiles.splice(i, 1);
+            renderNewPreview();
+        }
+
+        $('#editProductForm').on('submit', function(e) {
+            e.preventDefault();
+
+            shouldReload = true; // hanya tombol ini yang boleh reload
+
+            let btn = $('#editProductForm button[type="submit"]');
+            btn.prop('disabled', true).text('Updating...');
+
+            let id = $('#edit_product_id').val();
+
+            $.ajax({
+                url: `/products/${id}`,
+                method: 'PATCH',
+                data: {
+                    storeId: $('#edit_storeId').val(),
+                    sku: $('#edit_sku').val(),
+                    name: $('#edit_name').val(),
+                    description: $('#edit_description').val(),
+                    category: $('#p_editCategoryId').val(),
+                    brand: $('#p_editBrandId').val(),
+                    price: $('#edit_price').val(),
+                    promoPrice: $('#edit_promoPrice').val(),
+                    stock: $('#edit_stock').val(),
+                    version: $('#edit_version').val(),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function() {
+
+                    let afterSuccess = () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Produk berhasil diupdate!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        if (shouldReload) {
+                            setTimeout(() => location.reload(), 2000);
+                        }
+                    };
+
+                    if (newFiles.length > 0) {
+                        let fd = new FormData();
+                        newFiles.forEach(f => fd.append('photos[]', f));
+                        fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+                        $.ajax({
+                            url: `/products/${id}/photos`,
+                            method: 'POST',
+                            data: fd,
+                            processData: false,
+                            contentType: false,
+                            success: afterSuccess,
+                            error: () => Swal.fire('Error', 'Upload foto gagal', 'error')
+                        });
+                    } else {
+                        afterSuccess();
+                    }
+                },
+                error: function() {
+                    btn.prop('disabled', false).text('Update Produk');
+                    Swal.fire('Error', 'Update produk gagal', 'error');
+                }
+            });
         });
     </script>
 @endsection

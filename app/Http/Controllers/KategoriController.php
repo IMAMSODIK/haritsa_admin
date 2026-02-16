@@ -14,13 +14,13 @@ class KategoriController extends Controller
 
             $result = $api->request('get', '/categories');
 
-            if (!$result || ($result['status'] ?? null) !== 'success') {
-                return back()->with('error', 'Gagal mengambil data daftar Kategori');
-            }
+            // if (!$result || ($result['status'] ?? null) !== 'success') {
+            //     return back()->with('error', 'Gagal mengambil data daftar Kategori');
+            // }
 
             return view('kategori.index', [
                 'pageTitle' => 'Daftar Kategori',
-                'kategories' => $result['data'] ?? []
+                'kategories' => $result ?? []
             ]);
         } catch (\Exception $e) {
 
@@ -42,14 +42,18 @@ class KategoriController extends Controller
 
             $result = $api->request('post', '/categories', $payload);
 
-            if (!$result || ($result['status'] ?? null) !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal menambahkan Kategori'
-                ], 500);
-            }
+            // if (!$result || ($result['status'] ?? null) !== 'success') {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'Gagal menambahkan Kategori'
+            //     ], 500);
+            // }
 
-            return response()->json($result);
+            return response()->json([
+                'status' => 1,
+                'message' => 'Kategori berhasil ditambahkan',
+                'data' => $result['data'] ?? null
+            ]);
         } catch (\Exception $e) {
 
             return response()->json([
