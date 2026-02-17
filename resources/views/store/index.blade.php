@@ -2,7 +2,7 @@
 
 @section('own_style')
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> --}}
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <style>
@@ -356,7 +356,8 @@
 
         .custom-store-marker i {
             color: #667eea;
-            font-size: 18px;
+            font-size: 25px;
+            margin-left: 5px;
         }
     </style>
 @endsection
@@ -412,7 +413,7 @@
                             <div id="map-{{ $store['id'] }}" class="map-thumbnail loading-shimmer"></div>
                             <div class="store-overlay-badge">
                                 <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-3">
-                                    <i class="fas fa-map-marker-alt me-1"></i> Lokasi
+                                    <i class="fa fa-map-marker me-1"></i> Lokasi
                                 </span>
                             </div>
                         </div>
@@ -423,7 +424,7 @@
                                 <h3 class="store-title">{{ $store['name'] }}</h3>
                                 <span class="status-badge {{ $store['isActive'] ? 'active' : 'inactive' }}">
                                     <i
-                                        class="fas {{ $store['isActive'] ? 'fa-check-circle' : 'fa-pause-circle' }} me-1"></i>
+                                        class="fa {{ $store['isActive'] ? 'fa-check-circle' : 'fa-pause-circle' }} me-1"></i>
                                     {{ $store['isActive'] ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </div>
@@ -431,7 +432,7 @@
                             <!-- Store Info -->
                             <div class="store-info">
                                 <div class="store-info-icon">
-                                    <i class="fas fa-map-marker-alt"></i>
+                                    <i class="fa fa-map-marker"></i>
                                 </div>
                                 <div class="store-info-content">
                                     <div class="store-info-label">Lokasi</div>
@@ -441,7 +442,7 @@
 
                             <div class="store-info">
                                 <div class="store-info-icon">
-                                    <i class="fas fa-phone"></i>
+                                    <i class="fa fa-phone"></i>
                                 </div>
                                 <div class="store-info-content">
                                     <div class="store-info-label">Telepon</div>
@@ -453,7 +454,7 @@
                             @if ($store['description'])
                                 <div class="store-description-container">
                                     <div class="store-info-label mb-2">
-                                        <i class="fas fa-align-left me-2"></i>Deskripsi
+                                        <i class="fa fa-align-left me-2"></i>Deskripsi
                                     </div>
                                     <p class="store-description">{{ $store['description'] }}</p>
                                 </div>
@@ -462,7 +463,7 @@
                             <!-- Footer -->
                             <div class="store-footer">
                                 <div class="store-date">
-                                    <i class="fas fa-calendar-alt store-date-icon"></i>
+                                    <i class="fa fa-calendar store-date-icon" aria-hidden="true"></i>
                                     <span>Dibuat {{ \Carbon\Carbon::parse($store['createdAt'])->format('d M Y') }}</span>
                                 </div>
                                 {{-- <div class="store-actions">
@@ -840,7 +841,7 @@
                         // Buat custom icon marker
                         const storeIcon = L.divIcon({
                             className: 'custom-store-marker',
-                            html: `<i class="fas fa-store" style="color: ${storeData.isActive ? '#10b981' : '#6b7280'};"></i>`,
+                            html: `<i class="fa fa-map-marker" style="color: ${storeData.isActive ? '#10b981' : '#6b7280'};"></i>`,
                             iconSize: [36, 36],
                             iconAnchor: [18, 36],
                             popupAnchor: [0, -36]
