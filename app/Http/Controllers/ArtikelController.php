@@ -18,6 +18,11 @@ class ArtikelController extends Controller
                 return back()->with('error', 'Gagal mengambil data Artikel');
             }
 
+            $result = collect($result['data'] ?? [])
+                ->filter(fn($item) => empty($item['videoUrl']))
+                ->values()
+                ->toArray();
+
             return view('parenting.artikel', [
                 'pageTitle' => 'Daftar Artikel',
                 'articles' => $result['data'] ?? []
@@ -35,10 +40,7 @@ class ArtikelController extends Controller
                 ->post(env('API_END_POINT') . '/parenting/article', [
                     'title'       => (string) $r->title,
                     'content'     => (string) $r->content,
-                    'moderator'   => (string) $r->moderator,
-                    'videoUrl'    => (string) $r->videoUrl,
-                    'score'       => (int) $r->score,
-                    // 'thumbnailUrl' => (string) $r->thumbnailUrl
+                    'moderator'   => (string) $r->moderator
                 ]);
 
             if ($response->failed()) {
@@ -115,8 +117,6 @@ class ArtikelController extends Controller
                     'title'     => (string) $r->title,
                     'content'   => (string) $r->content,
                     'moderator' => (string) $r->moderator,
-                    'videoUrl'  => (string) $r->videoUrl,
-                    'score'     => (int) $r->score,
                     'isActive'  => (bool) $r->isActive
                 ]);
 

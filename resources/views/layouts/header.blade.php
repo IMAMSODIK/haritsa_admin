@@ -435,8 +435,6 @@
                     <ul class="profile-dropdown onhover-show-div">
                         <li><a href="/profile"><i data-feather="user"></i><span>My Profile</span></a>
                         </li>
-                        <li><a href="letter-box.html"><i data-feather="mail"></i><span>Inbox</span></a></li>
-                        <li> <a href="edit-profile.html"> <i data-feather="settings"></i><span>Settings</span></a>
                         </li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">

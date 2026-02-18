@@ -122,7 +122,7 @@
                 <li class="sidebar-list">
                     <a class="sidebar-link sidebar-title link-nav" href="/voucher">
                         <i class="fa fa-ticket text-white"></i>
-                        <span class="">Vucher</span>
+                        <span class="">Voucher</span>
                     </a>
                 </li>
 
@@ -144,6 +144,13 @@
                     <a class="sidebar-link sidebar-title link-nav" href="/artikel-parenting">
                         <i class="fa fa-book text-white"></i>
                         <span class="">Artikel Parenting</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/video-parenting">
+                        <i class="fa fa-play-circle text-white"></i>
+                        <span class="">Video Parenting</span>
                     </a>
                 </li>
 

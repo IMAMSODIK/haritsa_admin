@@ -16,6 +16,7 @@ use App\Http\Controllers\PromoVideoController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SurveyLayananController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VideoParentingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,12 +31,11 @@ Route::middleware('api.auth')->group(function () {
     Route::delete('/banner/{id}', [BannerController::class, 'destroy'])->name('banner.delete');
 
     Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/load', [UserController::class, 'loadUser']);
+    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
     Route::get('/users/roles', [UserController::class, 'roles']);
-    Route::get('/users/{id}', [UserController::class, 'show']);
     Route::post('/users/{roleId}', [UserController::class, 'store']);
     Route::patch('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    Route::patch('/users/{id}/deactivate', [UserController::class, 'deactivate']);
 
     Route::get('/stores', [StoreController::class, 'index'])->name('store.index');
     Route::post('/stores', [StoreController::class, 'store'])->name('store.store');
@@ -102,6 +102,12 @@ Route::middleware('api.auth')->group(function () {
     Route::patch('/artikel-parenting/{id}', [ArtikelController::class, 'update']);
     Route::get('/artikel-parenting/{id}', [ArtikelController::class, 'show']);
     Route::delete('/artikel-parenting/{id}', [ArtikelController::class, 'destroy']);
+
+    Route::get('/video-parenting', [VideoParentingController::class, 'index'])->name('artikel.index');
+    Route::post('/video-parenting', [VideoParentingController::class, 'store'])->name('artikel.store');
+    Route::patch('/video-parenting/{id}', [VideoParentingController::class, 'update']);
+    Route::get('/video-parenting/{id}', [VideoParentingController::class, 'show']);
+    Route::delete('/video-parenting/{id}', [VideoParentingController::class, 'destroy']);
 
     Route::get('/survey-layanan', [SurveyLayananController::class, 'index'])->name('survey.index');
     Route::post('/survey-layanan', [SurveyLayananController::class, 'store'])->name('survey.store');

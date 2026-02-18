@@ -89,3 +89,10 @@ promo video video, keterangan, thumbnail
 
 
 
+profile
+dashboard
+deactivate users
+artikel parenting (banner dan type)
+video parenting (banner dan type, video link wajib)
+kuis parenting 
+survey layanan (update)

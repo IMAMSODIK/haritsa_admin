@@ -1,6 +1,19 @@
 @extends('layouts.template')
 
 @section('own_style')
+    <style>
+        .strength-weak {
+            color: red;
+        }
+
+        .strength-medium {
+            color: orange;
+        }
+
+        .strength-strong {
+            color: green;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -48,14 +61,14 @@
                 <div class="card-body">
                     <div class="col-12">
                         <div class="table-container table-responsive">
-                            <table id="dataTable" class="table table-striped table-hover align-middle text-center">
+                            <table id="dataTable" class="table table-striped table-hover align-middle">
                                 <thead class="text-center">
                                     <tr>
-                                        <th style="width: 60px;">No</th>
-                                        <th>Username</th>
-                                        <th>No. Handphone</th>
-                                        <th>Role</th>
-                                        <th style="width: 120px;">Aksi</th>
+                                        <th class="text-center" style="width: 60px;">No</th>
+                                        <th class="text-center">Username</th>
+                                        <th class="text-center">No. Handphone</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center" style="width: 120px;">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -64,20 +77,34 @@
                                         <tr>
                                             <td class="text-center">{{ $i + 1 }}</td>
                                             <td>{{ $user['username'] }}</td>
-                                            <td>{{ $user['phone'] }}</td>
+                                            <td class="text-center">{{ $user['phone'] }}</td>
+                                            @if ($user['isActive'])
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">Aktif</span>
+                                                </td>
+                                            @else
+                                                <td class="text-center">
+                                                    <span class="badge bg-danger">Nonaktif</span>
+                                                </td>
+                                            @endif
                                             <td class="text-center">
-                                                <span class="badge bg-primary">
-                                                    {{ $user['role']['name'] ?? '-' }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    Edit
-                                                </button>
+                                                <div class="d-flex justify-content-center gap-2 flex-nowrap">
 
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    Hapus
-                                                </button>
+                                                    <button onclick="deactivateUser('{{ $user['id'] }}', this)"
+                                                        class="btn btn-sm btn-warning d-flex align-items-center gap-1">
+                                                        <i class="fa fa-ban"></i>
+                                                        <span>Deactivate</span>
+                                                    </button>
+
+                                                    <a href="{{ route('users.show', $user['id']) }}">
+                                                        <button
+                                                            class="btn btn-sm btn-info text-white d-flex align-items-center gap-1">
+                                                            <i class="fa fa-info-circle"></i>
+                                                            <span>Detail</span>
+                                                        </button>
+                                                    </a>
+
+                                                </div>
                                             </td>
                                         </tr>
                                     @empty
@@ -90,7 +117,6 @@
                                 </tbody>
 
                             </table>
-
                         </div>
                     </div>
                 </div>
@@ -99,7 +125,7 @@
 
     </div>
 
-    <div class="modal fade" id="addUserModal">
+    <div class="modal fade" id="modalTambah">
         <div class="modal-dialog">
             <div class="modal-content">
 
@@ -113,26 +139,46 @@
 
                         <div class="mb-3">
                             <label>Role</label>
-                            <select id="userRole" class="form-control" required></select>
+                            <select id="userRole" class="form-control" required>
+                                <option value="">-- Pilih Role --</option>
+
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role['id'] }}">
+                                        {{ $role['name'] }}
+                                    </option>
+                                @endforeach
+
+                            </select>
                         </div>
+
 
                         <div class="mb-3">
                             <label>Username</label>
-                            <input type="text" id="username" class="form-control" required>
+                            <input type="text" id="username" class="form-control" required
+                                placeholder="Masukkan username">
                         </div>
 
                         <div class="mb-3">
                             <label>No HP</label>
-                            <input type="text" id="phone" class="form-control" required>
+                            <input type="text" id="phone" class="form-control" required
+                                placeholder="Masukkan Nomor Handphone">
                         </div>
 
                         <div class="mb-3">
                             <label>Password</label>
-                            <input type="password" id="password" class="form-control" required>
-                            <small class="text-muted">
-                                Minimal 8 karakter, huruf & angka
-                            </small>
+
+                            <div class="input-group">
+                                <input type="password" id="password" class="form-control" required
+                                    placeholder="Masukkan password">
+
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                    👁
+                                </button>
+                            </div>
+
+                            <small id="passwordStrength" class="text-muted"></small>
                         </div>
+
 
                     </div>
 
@@ -149,50 +195,118 @@
 @endsection
 
 @section('own_script')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        function validPassword(pw) {
-            return pw.length >= 8 &&
-                /[A-Za-z]/.test(pw) &&
-                /[0-9]/.test(pw);
-        }
+        $(document).ready(function() {
+            $('#dataTable').DataTable({
+                responsive: true,
+                autoWidth: false
+            });
+        });
+    </script>
+    <script>
+        function deactivateUser(id, btn) {
 
-        $('#addUserModal').on('show.bs.modal', function() {
+            Swal.fire({
+                title: 'Deactivate user?',
+                text: 'User akan dinonaktifkan',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, deactivate',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d33'
+            }).then((result) => {
 
-            // reset form
-            $('#addUserForm')[0].reset();
-            $('#userRole').html('<option>Loading...</option>');
+                if (!result.isConfirmed) return;
 
-            $.get('/users/roles', function(res) {
+                let $btn = $(btn);
+                $btn.prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm"></span>');
 
-                let select = $('#userRole');
-                select.empty();
-                select.append('<option value="">Pilih Role</option>');
+                $.ajax({
+                    url: '/users/' + id + '/deactivate',
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
 
-                res.data.forEach(role => {
-                    select.append(
-                        `<option value="${role.id}">
-                    ${role.name} - ${role.description}
-                </option>`
-                    );
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message || 'User berhasil dinonaktifkan',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        setTimeout(() => location.reload(), 1500);
+                    },
+                    error: function(xhr) {
+
+                        Swal.fire(
+                            'Gagal',
+                            xhr.responseJSON?.message || 'Server error',
+                            'error'
+                        );
+
+                        $btn.prop('disabled', false)
+                            .html('<i class="fa fa-ban"></i> <span>Deactivate</span>');
+                    }
                 });
 
-            }).fail(function() {
-                Swal.fire('Error', 'Gagal mengambil role', 'error');
             });
+        }
 
+        $('#password').on('input', function() {
+            let val = $(this).val();
+            let strength = $('#passwordStrength');
+
+            if (val.length < 6) {
+                strength.text('Lemah').attr('class', 'strength-weak');
+            } else if (val.match(/[A-Z]/) && val.match(/[0-9]/)) {
+                strength.text('Kuat').attr('class', 'strength-strong');
+            } else {
+                strength.text('Sedang').attr('class', 'strength-medium');
+            }
         });
 
+        $('#phone').on('input', function() {
+            let val = $(this).val().replace(/\D/g, '');
+
+            if (val.startsWith('0')) {
+                val = '62' + val.substring(1);
+            }
+
+            $(this).val(val);
+        });
+
+        $('#togglePassword').click(function() {
+            let input = $('#password');
+            let type = input.attr('type') === 'password' ? 'text' : 'password';
+            input.attr('type', type);
+        });
+
+        $('#username, #phone, #password').on('input', function() {
+            if ($(this).val().length > 0) {
+                $(this).removeClass('is-invalid').addClass('is-valid');
+            } else {
+                $(this).removeClass('is-valid').addClass('is-invalid');
+            }
+        });
 
         $('#addUserForm').submit(function(e) {
             e.preventDefault();
 
+            let btn = $('#btnSubmitUser');
             let roleId = $('#userRole').val();
 
             if (!roleId) {
                 Swal.fire('Error', 'Pilih role dulu', 'warning');
                 return;
             }
+
+            // 6. Loading spinner
+            btn.prop('disabled', true)
+                .html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
 
             $.ajax({
                 url: '/users/' + roleId,
@@ -208,8 +322,19 @@
                 }),
                 success: function(res) {
 
-                    Swal.fire('Berhasil', res.message, 'success')
-                        .then(() => location.reload());
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // 4. Reset + close modal
+                    $('#addUserForm')[0].reset();
+                    $('#addUserModal').modal('hide');
+
+                    setTimeout(() => location.reload(), 1500);
 
                 },
                 error: function(xhr) {
@@ -219,9 +344,12 @@
                         xhr.responseJSON?.message || 'Server error',
                         'error'
                     );
+                },
+                complete: function() {
+                    btn.prop('disabled', false)
+                        .text('Tambah User');
                 }
             });
-
         });
     </script>
 @endsection

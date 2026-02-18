@@ -57,15 +57,15 @@
 
         <div class="row g-4">
 
-            @forelse ($articles as $article)
+            @forelse ($videos as $video)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0 article-card" style="cursor:pointer"
-                        onclick="editArtikel('{{ $article['id'] }}')">
+                        onclick="editArtikel('{{ $video['id'] }}')">
 
                         {{-- Thumbnail --}}
                         <div class="position-relative">
-                            @if (!empty($article['thumbnail']))
-                                <img src="{{ $article['thumbnail'] }}" class="card-img-top"
+                            @if (!empty($video['thumbnail']))
+                                <img src="{{ $video['thumbnail'] }}" class="card-img-top"
                                     style="height:200px;object-fit:cover;">
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center"
@@ -75,7 +75,7 @@
                             @endif
 
                             {{-- Badge youtube --}}
-                            @if ($article['videoUrl'])
+                            @if ($video['videoUrl'])
                                 <span class="badge bg-danger position-absolute top-0 end-0 m-2">
                                     YouTube
                                 </span>
@@ -86,35 +86,35 @@
 
                             {{-- Title --}}
                             <h5 class="card-title mb-1">
-                                {{ $article['title'] }}
+                                {{ $video['title'] }}
                             </h5>
 
                             {{-- Description --}}
                             <p class="text-muted small mb-2">
-                                {{ \Illuminate\Support\Str::words(strip_tags($article['content'] ?? '-'), 25) }}
+                                {{ \Illuminate\Support\Str::words(strip_tags($video['content'] ?? '-'), 25) }}
                             </p>
 
                             {{-- Moderator --}}
                             <div class="small text-muted mb-2">
                                 <i class="fa fa-microphone"></i>
-                                {{ $article['moderator'] ?? '-' }}
+                                {{ $video['moderator'] ?? '-' }}
                             </div>
 
                             {{-- Created --}}
                             <div class="small text-muted mb-3">
-                                Dibuat {{ date('d M Y', strtotime($article['createdAt'])) }}
+                                Dibuat {{ date('d M Y', strtotime($video['createdAt'])) }}
                             </div>
 
                             <div class="mt-auto"></div>
 
                             {{-- Buttons --}}
                             <button class="btn btn-outline-primary w-100"
-                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $article['id'] }}/preview"'>
+                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $video['id'] }}/preview"'>
                                 Preview
                             </button>
 
                             <button class="btn btn-outline-danger w-100 mt-2"
-                                onclick="deletePromo('{{ $article['id'] }}', this)">
+                                onclick="deletePromo('{{ $video['id'] }}', this)">
                                 Hapus
                             </button>
 
@@ -125,7 +125,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info text-center">
-                        Belum ada Artikel
+                        Belum ada Video Parenting
                     </div>
                 </div>
             @endforelse
@@ -166,16 +166,28 @@
                             <input type="text" class="form-control" id="article_moderator" placeholder="Masukkan moderator" maxlength="255" required>
                         </div>
 
-                        <!-- VIDEO -->
                         <div class="mb-3">
-                            <label class="form-label">Thumbnail Artikel</label>
+                            <label class="form-label">Thumbnail Video</label>
                             <input type="file" class="form-control" id="banner" accept="image/*">
 
                             <!-- PREVIEW -->
-                            <div id="artikelPreview" style="margin-top:12px; display:none;">
-                                <img id="artikelPreviewImg"
+                            <div id="thumbnailPreview" style="margin-top:12px; display:none;">
+                                <img id="thumbnailPreviewImg"
                                     style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
                             </div>
+                        </div>
+
+                        <!-- VIDEO -->
+                        <div class="mb-3">
+                            <label class="form-label">Link YouTube (optional)</label>
+                            <input type="text" class="form-control" id="article_videoUrl"
+                                oninput="generateThumbnailArticle()" placeholder="https://example.com">
+                        </div>
+
+                        <!-- Thumbnail preview -->
+                        <div class="mb-3 text-center">
+                            <img id="articleThumb" style="max-width:100%;display:none;border-radius:8px;">
+                            <input type="hidden" id="article_thumbnailUrl">
                         </div>
 
                         <div id="articleAlert"></div>
@@ -266,15 +278,17 @@
                             <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan moderator">
                         </div>
 
+                        <!-- VIDEO -->
                         <div class="mb-3">
-                            <label class="form-label">Thumbnail Artikel</label>
-                            <input type="file" class="form-control" id="edit_banner" accept="image/*">
+                            <label class="form-label">Link Video</label>
+                            <input type="text" class="form-control" id="edit_videoUrl"
+                                oninput="generateEditThumbnail()" placeholder="https://example.com">
+                        </div>
 
-                            <!-- PREVIEW -->
-                            <div id="artikelEditPreview" style="margin-top:12px; display:none;">
-                                <img id="artikelEditPreviewImg"
-                                    style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
-                            </div>
+                        <!-- THUMB PREVIEW -->
+                        <div class="text-center">
+                            <img id="edit_thumbnail_preview" class="img-fluid rounded"
+                                style="max-height:200px;display:none;">
                         </div>
 
                         <!-- STATUS -->
@@ -321,28 +335,56 @@
             let reader = new FileReader();
 
             reader.onload = function(e) {
-                $('#artikelPreviewImg').attr('src', e.target.result);
-                $('#artikelPreview').fadeIn(200);
+                $('#thumbnailPreviewImg').attr('src', e.target.result);
+                $('#thumbnailPreview').fadeIn(200);
             };
 
             reader.readAsDataURL(file);
         });
 
-        $('#edit_banner').on('change', function() {
-            let file = this.files[0];
+        function extractYouTubeId(url) {
+            let regExp =
+                /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
 
-            if (!file) return;
+            let match = url.match(regExp);
+            return (match && match[2].length === 11) ?
+                match[2] :
+                null;
+        }
 
-            let reader = new FileReader();
+        function generateThumbnailArticle() {
+            let url = $('#article_videoUrl').val();
+            let id = extractYouTubeId(url);
 
-            reader.onload = function(e) {
-                $('#artikelEditPreviewImg').attr('src', e.target.result);
-                $('#artikelEditPreview').fadeIn(200);
-            };
+            if (!id) {
+                $('#articleThumb').hide();
+                return;
+            }
 
-            reader.readAsDataURL(file);
-        });
-        
+            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+
+            $('#articleThumb').attr('src', thumb).show();
+            $('#article_thumbnailUrl').val(thumb);
+        }
+
+        function generateEditThumbnail() {
+            let url = $('#edit_videoUrl').val();
+            let id = extractYouTubeId(url);
+
+            if (!id) {
+                $('#edit_thumbnail_preview').hide();
+                return;
+            }
+
+            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+
+            $('#edit_thumbnail_preview')
+                .attr('src', thumb)
+                .show();
+
+            $('#edit_thumbnail').val(thumb);
+        }
+
         $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
 
@@ -355,6 +397,9 @@
                     title: $('#article_title').val(),
                     content: content,
                     moderator: $('#article_moderator').val(),
+                    videoUrl: $('#article_videoUrl').val(),
+                    score: $('#article_score').val(),
+                    thumbnailUrl: $('#article_thumbnailUrl').val(),
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
 
@@ -379,6 +424,7 @@
 
             $('#previewTitle').text(a.title);
             $('#previewModerator').text(a.moderator);
+            $('#previewScore').text(a.score);
 
             // rich text content
             $('#previewContent').html(a.content);
@@ -411,7 +457,15 @@
                 $('#edit_id').val(a.id);
                 $('#edit_title').val(a.title);
                 $('#edit_moderator').val(a.moderator);
+                $('#edit_videoUrl').val(a.videoUrl);
+                $('#edit_score').val(a.score);
                 $('#edit_isActive').prop('checked', a.isActive ?? true);
+
+                if (a.thumbnail) {
+                    $('#edit_thumbnail_preview')
+                        .attr('src', a.thumbnail)
+                        .show();
+                }
 
                 // rich text content
                 editQuill.root.innerHTML = a.content || '';
@@ -433,6 +487,8 @@
                     title: $('#edit_title').val(),
                     content: editQuill.root.innerHTML,
                     moderator: $('#edit_moderator').val(),
+                    videoUrl: $('#edit_videoUrl').val(),
+                    score: $('#edit_score').val(),
                     isActive: $('#edit_isActive').is(':checked'),
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
