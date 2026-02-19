@@ -109,7 +109,7 @@
 
                             {{-- Buttons --}}
                             <button class="btn btn-outline-primary w-100"
-                                onclick='event.stopPropagation(); location.href="/artikel-parenting/{{ $video['id'] }}/preview"'>
+                                onclick='event.stopPropagation(); location.href="/video-parenting/{{ $video['id'] }}/preview"'>
                                 Preview
                             </button>
 
@@ -195,7 +195,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Simpan Artikel
                         </button>
                     </div>
@@ -278,6 +278,17 @@
                             <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan moderator">
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Thumbnail Video</label>
+                            <input type="file" class="form-control" id="edit_banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="thumbnailEditPreview" style="margin-top:12px; display:none;">
+                                <img id="thumbnailEditPreviewImg"
+                                    style="width:100%; max-height:420px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
+                        </div>
+
                         <!-- VIDEO -->
                         <div class="mb-3">
                             <label class="form-label">Link Video</label>
@@ -302,7 +313,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Update Artikel
                         </button>
                     </div>
@@ -337,6 +348,21 @@
             reader.onload = function(e) {
                 $('#thumbnailPreviewImg').attr('src', e.target.result);
                 $('#thumbnailPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        $('#edit_banner').on('change', function() {
+            let file = this.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#thumbnailEditPreviewImg').attr('src', e.target.result);
+                $('#thumbnailEditPreview').fadeIn(200);
             };
 
             reader.readAsDataURL(file);
@@ -388,24 +414,34 @@
         $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
 
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Updating...');
             let content = quill.root.innerHTML;
 
-            $.ajax({
-                url: '/artikel-parenting',
-                method: 'POST',
-                data: {
-                    title: $('#article_title').val(),
-                    content: content,
-                    moderator: $('#article_moderator').val(),
-                    videoUrl: $('#article_videoUrl').val(),
-                    score: $('#article_score').val(),
-                    thumbnailUrl: $('#article_thumbnailUrl').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+            let fd = new FormData();
 
+            fd.append('title', $('#article_title').val());
+            fd.append('content', content);
+            fd.append('moderator', $('#article_moderator').val());
+            fd.append('videoUrl', $('#article_videoUrl').val());
+            fd.append('thumbnailUrl', $('#article_thumbnailUrl').val());
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let thumbnail = $('#banner')[0].files[0];
+            if (thumbnail) {
+                fd.append('thumbnail', thumbnail);
+            }
+
+            $.ajax({
+                url: '/video-parenting',
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
+                    btn.prop('disabled', false).text('Simpan Artikel');
                 },
 
                 error: function(xhr) {
@@ -414,6 +450,7 @@
                     ${xhr.responseJSON?.server || 'Gagal membuat artikel'}
                 </div>
             `);
+            btn.prop('disabled', false).text('Simpan Artikel');
                 }
             });
         });
@@ -450,7 +487,7 @@
         }
 
         function editArtikel(id) {
-            $.get(`/artikel-parenting/${id}`, function(res) {
+            $.get(`/video-parenting/${id}`, function(res) {
 
                 let a = res.data;
 
@@ -465,6 +502,9 @@
                     $('#edit_thumbnail_preview')
                         .attr('src', a.thumbnail)
                         .show();
+
+                    $("#thumbnailEditPreview").show();
+                    $('#thumbnailEditPreviewImg').attr('src', a.thumbnail);
                 }
 
                 // rich text content
@@ -480,19 +520,29 @@
             let btn = $(this).find('button[type="submit"]');
             btn.prop('disabled', true).text('Updating...');
 
-            $.ajax({
-                url: `/artikel-parenting/${$('#edit_id').val()}`,
-                method: 'PATCH',
-                data: {
-                    title: $('#edit_title').val(),
-                    content: editQuill.root.innerHTML,
-                    moderator: $('#edit_moderator').val(),
-                    videoUrl: $('#edit_videoUrl').val(),
-                    score: $('#edit_score').val(),
-                    isActive: $('#edit_isActive').is(':checked'),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+            let fd = new FormData();
 
+            fd.append('title', $('#edit_title').val());
+            fd.append('content', editQuill.root.innerHTML);
+            fd.append('moderator', $('#edit_moderator').val());
+            fd.append('videoUrl', $('#edit_videoUrl').val());
+            fd.append('isActive', $('#edit_isActive').is(':checked'));
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let thumbnail = $('#edit_banner')[0].files[0];
+            if (thumbnail) {
+                fd.append('thumbnail', thumbnail);
+            }
+
+            $.ajax({
+                url: `/video-parenting/${$('#edit_id').val()}`,
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
                 success: function(res) {
                     Swal.fire({
                         icon: 'success',
@@ -532,7 +582,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/artikel-parenting/${id}`,
+                        url: `/video-parenting/${id}`,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')

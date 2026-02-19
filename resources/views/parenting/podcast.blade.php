@@ -92,11 +92,6 @@
                                 {{ $podcast['description'] ?? '-' }}
                             </p>
 
-                            {{-- Meta info --}}
-                            <div class="small text-muted mb-2">
-                                ⭐ Point: <strong>{{ $podcast['score'] ?? '-' }}</strong><br>
-                            </div>
-
                             {{-- Moderator --}}
                             <div class="small text-muted mb-2">
                                 <i class="fa fa-microphone"></i>
@@ -182,10 +177,15 @@
                             <input type="hidden" id="podcast_thumbnailUrl">
                         </div>
 
-                        <!-- SCORE -->
                         <div class="mb-3">
-                            <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="podcast_score" placeholder="Masukkan point podcast" min="0" required>
+                            <label class="form-label">Thumbnail Video</label>
+                            <input type="file" class="form-control" id="banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="thumbnailPreview" style="margin-top:12px; display:none;">
+                                <img id="thumbnailPreviewImg"
+                                    style="width:100%; max-height:420px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <div id="podcastAlert"></div>
@@ -218,10 +218,6 @@
                     <img id="previewThumbnail" class="img-fluid rounded mb-3" style="max-height:250px;object-fit:cover;">
 
                     <p id="previewDesc"></p>
-
-                    <div class="fw-bold mb-2">
-                        🎯 Point penting: <span id="previewScore"></span>
-                    </div>
 
                     <div class="mb-2">
                         🎙 Moderator: <span id="previewModerator"></span>
@@ -288,10 +284,15 @@
                                 style="max-height:200px;display:none;">
                         </div>
 
-                        <!-- SCORE -->
                         <div class="mb-3">
-                            <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="edit_score" placeholder="Masukkan point podcast">
+                            <label class="form-label">Thumbnail Video</label>
+                            <input type="file" class="form-control" id="edit_banner" accept="image/*">
+
+                            <!-- PREVIEW -->
+                            <div id="thumbnailEditPreview" style="margin-top:12px; display:none;">
+                                <img id="thumbnailEditPreviewImg"
+                                    style="width:100%; max-height:420px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                            </div>
                         </div>
 
                         <div id="editAlert"></div>
@@ -314,6 +315,36 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
+        $('#banner').on('change', function() {
+            let file = this.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#thumbnailPreviewImg').attr('src', e.target.result);
+                $('#thumbnailPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        $('#edit_banner').on('change', function() {
+            let file = this.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#thumbnailEditPreviewImg').attr('src', e.target.result);
+                $('#thumbnailEditPreview').fadeIn(200);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
         function generateThumbnail() {
             let url = $('#podcast_videoUrl').val();
             let videoId = extractYouTubeId(url);
@@ -368,6 +399,11 @@
 
             let formData = new FormData();
 
+            let thumbnail = $('#banner')[0].files[0];
+            if (thumbnail) {
+                formData.append('thumbnail', thumbnail);
+            }
+
             formData.append('title', $('#podcast_title').val());
             formData.append('description', $('#podcast_description').val());
             formData.append('moderator', $('#podcast_moderator').val());
@@ -385,6 +421,7 @@
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
+                    btn.prop('disabled', false).text('Simpan Podcast');
                 },
 
                 error: function(xhr) {
@@ -393,6 +430,7 @@
                     ${xhr.responseJSON?.message || 'Gagal membuat podcast'}
                 </div>
             `);
+            btn.prop('disabled', false).text('Simpan Podcast');
                 }
             });
         });
@@ -443,6 +481,9 @@
                     $('#edit_thumbnail_preview')
                         .attr('src', p.thumbnail)
                         .show();
+
+                    $("#thumbnailEditPreview").show();
+                    $("#thumbnailEditPreviewImg").attr('src', p.thumbnail);
                 }
 
                 $('#editPodcastModal').modal('show');
@@ -456,22 +497,33 @@
             let btn = $(this).find('button[type="submit"]');
             btn.prop('disabled', true).text('Menyimpan...');
 
+            let formData = new FormData();
+
+            let thumbnail = $('#edit_banner')[0].files[0];
+            if (thumbnail) {
+                formData.append('thumbnail', thumbnail);
+            }
+
+            formData.append('title', $('#edit_title').val());
+            formData.append('description', $('#edit_description').val());
+            formData.append('moderator', $('#edit_moderator').val());
+            formData.append('videoUrl', $('#edit_videoUrl').val());
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+
             $.ajax({
                 url: `/podcast/${$('#edit_id').val()}`,
-                method: 'PATCH',
-                data: {
-                    title: $('#edit_title').val(),
-                    description: $('#edit_description').val(),
-                    moderator: $('#edit_moderator').val(),
-                    videoUrl: $('#edit_videoUrl').val(),
-                    score: $('#edit_score').val(),
-                    thumbnailUrl: $('#edit_thumbnail').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
                 },
-
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
+                    btn.prop('disabled', false).text('Update Podcast');
                 },
 
                 error: function(xhr) {
@@ -480,6 +532,7 @@
                     ${xhr.responseJSON?.server || 'Gagal update podcast'}
                 </div>
             `);
+            btn.prop('disabled', false).text('Update Podcast');
                 }
             });
         });

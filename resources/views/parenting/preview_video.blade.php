@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Artikel Parenting · {{ $article['title'] }}</title>
+    <title>Video Parenting · {{ $article['title'] }}</title>
     <!-- Font sederhana & icon -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +58,15 @@
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        .hero-image iframe {
+            position: absolute;
+            inset: 0;
+            /* top:0 left:0 right:0 bottom:0 */
+            width: 100%;
+            height: 100%;
+            border: 0;
         }
 
         /* label / kategori di atas gambar */
@@ -325,27 +334,26 @@
 
     <main class="article-wrapper">
 
-        <!-- HERO -->
         <div class="hero-image position-relative">
 
             @if (!empty($article['videoUrl']))
-                {{-- Thumbnail tetap tampil --}}
-                <img src="{{ $article['thumbnail'] ?? 'https://picsum.photos/800/450' }}"
-                    alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy">
-
-                {{-- Tombol Play --}}
-                <a href="{{ $article['videoUrl'] }}" target="_blank" class="play-button">
-                    <i class="fa-solid fa-play"></i>
-                </a>
+                <iframe
+                    src="{{ \Illuminate\Support\Str::contains($article['videoUrl'], 'watch?v=')
+                        ? str_replace('watch?v=', 'embed/', $article['videoUrl'])
+                        : $article['videoUrl'] }}"
+                    title="{{ $article['title'] ?? 'Video' }}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
             @else
                 {{-- Banner Normal --}}
                 <img src="{{ $article['thumbnail'] ?? 'https://picsum.photos/800/450' }}"
-                    alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy">
+                    alt="{{ $article['title'] ?? 'Artikel' }}" class="img-fluid w-100" loading="lazy">
             @endif
 
             <div class="category-tag">
                 <i class="far fa-compass" style="margin-right: 6px;"></i>
-                Article for Parents
+                Video for Parents
             </div>
 
         </div>
@@ -384,7 +392,7 @@
 
     <footer class="site-footer">
         <i class="far fa-copyright"></i>
-        {{ date('Y') }} Haritsa Parenting Article — semua artikel untuk edukasi keluarga
+        {{ date('Y') }} Haritsa Parenting Video — semua tips untuk edukasi keluarga
     </footer>
 
 

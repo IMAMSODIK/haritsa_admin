@@ -2,35 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(ApiService $api)
     {
-        $token = session('accessToken');
-
         try {
 
-            $response = Http::withToken($token)
-                ->get(env('API_END_POINT') . '/auth/profile');
+            $result = $api->request('get', '/dashboard');
+            $banner = $api->request('get', '/banner');
 
-            $profile = $response->json();
+            if (!$result || ($result['status'] ?? null) !== 'success') {
+                return back()->with('error', 'Terjadi kesalahan saat mengambil data dashboard');
+            }
 
-            $data = [
+            return view('dashboard.index', [
                 'pageTitle' => 'Dashboard',
-                'username' => $profile['username'] ?? 'Guest',
-            ];
-
-            return view('dashboard.index', $data);
+                'data' => [
+                    'statistik' => $result['data'] ?? [],
+                    'banners' => $banner['data'] ?? []
+                ]
+            ]);
         } catch (\Exception $e) {
 
-            session()->flush();
-
-            return redirect()
-                ->route('login')
-                ->with('error', 'Sesi telah berakhir, silakan login ulang.');
+            return back()->with('error', 'Terjadi kesalahan saat mengambil data dashboard');
         }
     }
 }

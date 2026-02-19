@@ -18,145 +18,163 @@ class VideoParentingController extends Controller
                 return back()->with('error', 'Gagal mengambil data Artikel');
             }
 
+            $result = collect($result['data'] ?? [])
+                ->filter(fn($item) => !empty($item['videoUrl']))
+                ->values()
+                ->toArray();
+
             return view('parenting.video_parenting', [
                 'pageTitle' => 'Daftar Video Parenting',
-                'videos' => $result['data'] ?? []
+                'videos' => $result ?? []
             ]);
         } catch (\Exception $e) {
             return back()->with('error', 'Server Video Parenting tidak bisa dihubungi');
         }
     }
 
-    // public function store(Request $r)
-    // {
-    //     try {
+    public function store(Request $r)
+    {
+        try {
+            $http = Http::withToken(session('accessToken'));
 
-    //         $response = Http::withToken(session('accessToken'))
-    //             ->post(env('API_END_POINT') . '/parenting/article', [
-    //                 'title'       => (string) $r->title,
-    //                 'content'     => (string) $r->content,
-    //                 'moderator'   => (string) $r->moderator,
-    //                 'videoUrl'    => (string) $r->videoUrl,
-    //                 'score'       => (int) $r->score,
-    //                 // 'thumbnailUrl' => (string) $r->thumbnailUrl
-    //             ]);
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
 
-    //         if ($response->failed()) {
-    //             return response()->json([
-    //                 'server' => $response->json()['message'] ?? 'Gagal simpan Artikel'
-    //             ], $response->status());
-    //         }
+            $response = $http->post(env('API_END_POINT') . "/parenting/article", [
+                'title'       => (string) $r->title,
+                'content'     => (string) $r->content,
+                'moderator'   => (string) $r->moderator,
+                'type'        => (string) 'VIDEO',
+                'videoUrl'    => (string) $r->videoUrl,
+            ]);
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => $response->json()['message']
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'debug' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal simpan Artikel'
+                ], $response->status());
+            }
 
-    // public function show($id)
-    // {
-    //     try {
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 
-    //         $response = Http::withToken(session('accessToken'))
-    //             ->get(env('API_END_POINT') . "/parenting/article/$id");
+    public function show($id)
+    {
+        try {
 
-    //         if ($response->failed()) {
-    //             return response()->json([
-    //                 'server' => $response->json()['message'] ?? 'Gagal mengambil data arikel'
-    //             ], $response->status());
-    //         }
+            $response = Http::withToken(session('accessToken'))
+                ->get(env('API_END_POINT') . "/parenting/article/$id");
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'data' => $response->json()['data'] ?? null
-    //         ]);
-    //     } catch (\Exception $e) {
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal mengambil data arikel'
+                ], $response->status());
+            }
 
-    //         return response()->json([
-    //             'server' => 'Server artikel tidak bisa dihubungi',
-    //             'debug' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'] ?? null
+            ]);
+        } catch (\Exception $e) {
 
-    // public function preview($id)
-    // {
-    //     try {
+            return response()->json([
+                'server' => 'Server artikel tidak bisa dihubungi',
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 
-    //         $response = Http::withToken(session('accessToken'))
-    //             ->get(env('API_END_POINT') . "/parenting/article/$id");
+    public function preview($id)
+    {
+        try {
 
-    //         if ($response->failed()) {
-    //             return back()->with('error', 'Gagal mengambil data Artikel');
-    //         }
+            $response = Http::withToken(session('accessToken'))
+                ->get(env('API_END_POINT') . "/parenting/article/$id");
 
-    //         $result = $response->json();
+            if ($response->failed()) {
+                return back()->with('error', 'Gagal mengambil data Video Parenting');
+            }
 
-    //         return view('parenting.preview_artikel', [
-    //             'pageTitle' => 'Artikel Parenting',
-    //             'article' => $result['data'] ?? []
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return back()->with('error', 'Server Artikel tidak bisa dihubungi');
-    //     }
-    // }
+            $result = $response->json();
 
-    // public function update(Request $r, $id)
-    // {
-    //     try {
+            return view('parenting.preview_video', [
+                'pageTitle' => 'Video Parenting',
+                'article' => $result['data'] ?? []
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Server Video Parenting tidak bisa dihubungi');
+        }
+    }
 
-    //         $response = Http::withToken(session('accessToken'))
-    //             ->patch(env('API_END_POINT') . "/parenting/article/$id", [
-    //                 'title'     => (string) $r->title,
-    //                 'content'   => (string) $r->content,
-    //                 'moderator' => (string) $r->moderator,
-    //                 'videoUrl'  => (string) $r->videoUrl,
-    //                 'score'     => (int) $r->score,
-    //                 'isActive'  => (bool) $r->isActive
-    //             ]);
+    public function update(Request $r, $id)
+    {
+        try {
+            $http = Http::withToken(session('accessToken'));
 
-    //         if ($response->failed()) {
-    //             return response()->json([
-    //                 'server' => $response->json()['message'] ?? 'Gagal update artikel'
-    //             ], $response->status());
-    //         }
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => $response->json()['message'] ?? 'Artikel berhasil diupdate'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'debug' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+            $response = $http->patch(env('API_END_POINT') . "/parenting/article/$id", [
+                'title'       => (string) $r->title,
+                'content'     => (string) $r->content,
+                'moderator'   => (string) $r->moderator,
+                'videoUrl'    => (string) $r->videoUrl,
+            ]);
 
-    // public function destroy($id)
-    // {
-    //     try {
-    //         $response = Http::withToken(session('accessToken'))
-    //             ->delete(env('API_END_POINT') . "/parenting/article/$id");
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal update artikel'
+                ], $response->status());
+            }
 
-    //         if ($response->failed()) {
-    //             return response()->json([
-    //                 'server' => $response->json()['message'] ?? 'Gagal menghapus Artikel'
-    //             ], $response->status());
-    //         }
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message'] ?? 'Artikel berhasil diupdate'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => $response->json()['message'] ?? 'Artikel berhasil dihapus'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'debug' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+    public function destroy($id)
+    {
+        try {
+            $response = Http::withToken(session('accessToken'))
+                ->delete(env('API_END_POINT') . "/parenting/article/$id");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal menghapus Artikel'
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message'] ?? 'Artikel berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

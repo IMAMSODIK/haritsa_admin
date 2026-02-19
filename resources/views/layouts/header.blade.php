@@ -433,9 +433,7 @@
                         </div>
                     </div>
                     <ul class="profile-dropdown onhover-show-div">
-                        <li><a href="/profile"><i data-feather="user"></i><span>My Profile</span></a>
-                        </li>
-                        </li>
+                        {{-- <li><a href="/profile"><i data-feather="user"></i><span>My Profile</span></a></li> --}}
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

@@ -11,7 +11,6 @@ class ArtikelController extends Controller
     public function index(ApiService $api)
     {
         try {
-
             $result = $api->request('get', '/parenting/article');
 
             if (!$result || ($result['status'] ?? null) !== 'success') {
@@ -25,7 +24,7 @@ class ArtikelController extends Controller
 
             return view('parenting.artikel', [
                 'pageTitle' => 'Daftar Artikel',
-                'articles' => $result['data'] ?? []
+                'articles' => $result ?? []
             ]);
         } catch (\Exception $e) {
             return back()->with('error', 'Server Artikel tidak bisa dihubungi');
@@ -35,13 +34,22 @@ class ArtikelController extends Controller
     public function store(Request $r)
     {
         try {
+            $http = Http::withToken(session('accessToken'));
 
-            $response = Http::withToken(session('accessToken'))
-                ->post(env('API_END_POINT') . '/parenting/article', [
-                    'title'       => (string) $r->title,
-                    'content'     => (string) $r->content,
-                    'moderator'   => (string) $r->moderator
-                ]);
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
+
+            $response = $http->post(env('API_END_POINT') . "/parenting/article", [
+                'title'       => (string) $r->title,
+                'content'     => (string) $r->content,
+                'moderator'   => (string) $r->moderator,
+                'type'        => (string) 'ARTICLE',
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
@@ -89,7 +97,6 @@ class ArtikelController extends Controller
     public function preview($id)
     {
         try {
-
             $response = Http::withToken(session('accessToken'))
                 ->get(env('API_END_POINT') . "/parenting/article/$id");
 
@@ -111,14 +118,22 @@ class ArtikelController extends Controller
     public function update(Request $r, $id)
     {
         try {
+            $http = Http::withToken(session('accessToken'));
 
-            $response = Http::withToken(session('accessToken'))
-                ->patch(env('API_END_POINT') . "/parenting/article/$id", [
-                    'title'     => (string) $r->title,
-                    'content'   => (string) $r->content,
-                    'moderator' => (string) $r->moderator,
-                    'isActive'  => (bool) $r->isActive
-                ]);
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
+
+            $response = $http->patch(env('API_END_POINT') . "/parenting/article/$id", [
+                'title'     => (string) $r->title,
+                'content'   => (string) $r->content,
+                'moderator' => (string) $r->moderator,
+                'isActive'  => (bool) $r->isActive
+            ]);
 
             if ($response->failed()) {
                 return response()->json([

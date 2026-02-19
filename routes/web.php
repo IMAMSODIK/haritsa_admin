@@ -127,6 +127,7 @@ Route::middleware('api.auth')->group(function () {
 });
 
 Route::get('/artikel-parenting/{id}/preview', [ArtikelController::class, 'preview']);
+Route::get('/video-parenting/{id}/preview', [VideoParentingController::class, 'preview']);
 
 Route::middleware('api.auth')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');

@@ -56,7 +56,6 @@
         </div>
 
         <div class="row g-4">
-
             @forelse ($articles as $article)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0 article-card" style="cursor:pointer"
@@ -183,7 +182,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Simpan Artikel
                         </button>
                     </div>
@@ -273,7 +272,7 @@
                             <!-- PREVIEW -->
                             <div id="artikelEditPreview" style="margin-top:12px; display:none;">
                                 <img id="artikelEditPreviewImg"
-                                    style="width:100%; max-height:220px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
+                                    style="width:100%; max-height:420px; object-fit:cover; border-radius:10px; border:1px solid #ddd;">
                             </div>
                         </div>
 
@@ -288,7 +287,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
+                        <button class="btn btn-primary w-100" type="submit">
                             Update Artikel
                         </button>
                     </div>
@@ -346,18 +345,29 @@
         $('#addArticleForm').on('submit', function(e) {
             e.preventDefault();
 
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
+
             let content = quill.root.innerHTML;
+
+            let fd = new FormData();
+
+            fd.append('title', $('#article_title').val());
+            fd.append('moderator', $('#article_moderator').val());
+            fd.append('content', content);
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let thumbnail = $('#banner')[0].files[0];
+            if (thumbnail) {
+                fd.append('thumbnail', thumbnail);
+            }
 
             $.ajax({
                 url: '/artikel-parenting',
                 method: 'POST',
-                data: {
-                    title: $('#article_title').val(),
-                    content: content,
-                    moderator: $('#article_moderator').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
@@ -383,17 +393,9 @@
             // rich text content
             $('#previewContent').html(a.content);
 
-            $('#previewThumbnail')
-                .attr('src', a.thumbnailUrl || '')
-                .toggle(!!a.thumbnailUrl);
-
-            if (a.videoUrl) {
-                $('#previewVideo')
-                    .attr('href', a.videoUrl)
-                    .show();
-            } else {
-                $('#previewVideo').hide();
-            }
+            $('#artikelEditPreviewImg')
+                .attr('src', a.thumbnail || '')
+                .toggle(!!a.thumbnail);
 
             let date = new Date(a.createdAt);
             $('#previewDate').text(
@@ -405,7 +407,6 @@
 
         function editArtikel(id) {
             $.get(`/artikel-parenting/${id}`, function(res) {
-
                 let a = res.data;
 
                 $('#edit_id').val(a.id);
@@ -415,6 +416,11 @@
 
                 // rich text content
                 editQuill.root.innerHTML = a.content || '';
+
+                $('#artikelEditPreviewImg')
+                .attr('src', a.thumbnail || '');
+
+                $("#artikelEditPreview").toggle(!!a.thumbnail);
 
                 $('#editArtikelModal').modal('show');
             });
@@ -426,17 +432,28 @@
             let btn = $(this).find('button[type="submit"]');
             btn.prop('disabled', true).text('Updating...');
 
+            let fd = new FormData();
+
+            fd.append('title', $('#edit_title').val());
+            fd.append('moderator', $('#edit_moderator').val());
+            fd.append('isActive', $('#edit_isActive').is(':checked'));
+            fd.append('content', editQuill.root.innerHTML);
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let thumbnail = $('#edit_banner')[0].files[0];
+            if (thumbnail) {
+                fd.append('thumbnail', thumbnail);
+            }
+
             $.ajax({
                 url: `/artikel-parenting/${$('#edit_id').val()}`,
-                method: 'PATCH',
-                data: {
-                    title: $('#edit_title').val(),
-                    content: editQuill.root.innerHTML,
-                    moderator: $('#edit_moderator').val(),
-                    isActive: $('#edit_isActive').is(':checked'),
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH'
                 },
-
                 success: function(res) {
                     Swal.fire({
                         icon: 'success',

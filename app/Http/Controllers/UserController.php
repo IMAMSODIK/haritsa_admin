@@ -218,7 +218,6 @@ class UserController extends Controller
         try {
 
             $result = $api->request('get', '/users');
-
             $users = $result['data'] ?? [];
 
             return view('profile.index', [

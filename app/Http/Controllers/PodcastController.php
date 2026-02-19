@@ -31,16 +31,22 @@ class PodcastController extends Controller
     public function store(Request $r)
     {
         try {
+            $http = Http::withToken(session('accessToken'));
 
-            $response = Http::withToken(session('accessToken'))
-                ->post(env('API_END_POINT') . '/parenting/podcast', [
-                    'title' => (string) $r->title,
-                    'description' => (string) $r->description,
-                    'moderator' => (string) $r->moderator,
-                    'score' => (int) $r->score,
-                    'videoUrl' => (string) $r->videoUrl,
-                    // 'thumbnailUrl' => (string) $r->thumbnailUrl,
-                ]);
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
+
+            $response = $http->post(env('API_END_POINT') . '/parenting/podcast', [
+                'title' => (string) $r->title,
+                'description' => (string) $r->description,
+                'moderator' => (string) $r->moderator,
+                'videoUrl' => (string) $r->videoUrl,
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
@@ -87,13 +93,19 @@ class PodcastController extends Controller
         try {
             $http = Http::withToken(session('accessToken'));
 
+            if ($r->hasFile('thumbnail')) {
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
+            }
+
             $response = $http->patch(env('API_END_POINT') . "/parenting/podcast/$id", [
                 'title'        => (string) $r->title,
                 'description'  => (string) $r->description,
                 'moderator'    => (string) $r->moderator,
                 'videoUrl'     => (string) $r->videoUrl,
-                'score'        => (int) $r->score,
-                // 'thumbnailUrl' => (string) $r->thumbnailUrl
             ]);
 
             if ($response->failed()) {
