@@ -96,13 +96,13 @@
                                                         <span>Deactivate</span>
                                                     </button>
 
-                                                    <a href="{{ route('users.show', $user['id']) }}">
+                                                    {{-- <a href="{{ route('users.show', $user['id']) }}">
                                                         <button
                                                             class="btn btn-sm btn-info text-white d-flex align-items-center gap-1">
                                                             <i class="fa fa-info-circle"></i>
                                                             <span>Detail</span>
                                                         </button>
-                                                    </a>
+                                                    </a> --}}
 
                                                 </div>
                                             </td>
