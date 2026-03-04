@@ -78,23 +78,28 @@
                                             <td class="text-center">{{ $i + 1 }}</td>
                                             <td>{{ $user['username'] }}</td>
                                             <td class="text-center">{{ $user['phone'] }}</td>
-                                            @if ($user['isActive'])
-                                                <td class="text-center">
-                                                    <span class="badge bg-success">Aktif</span>
-                                                </td>
-                                            @else
-                                                <td class="text-center">
-                                                    <span class="badge bg-danger">Nonaktif</span>
-                                                </td>
-                                            @endif
+                                            <td class="text-center">
+                                                <span id="status-badge-{{ $user['id'] }}"
+                                                    class="badge {{ $user['isActive'] ? 'bg-success' : 'bg-danger' }}">
+                                                    {{ $user['isActive'] ? 'Aktif' : 'Nonaktif' }}
+                                                </span>
+                                            </td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2 flex-nowrap">
 
-                                                    <button onclick="deactivateUser('{{ $user['id'] }}', this)"
-                                                        class="btn btn-sm btn-warning d-flex align-items-center gap-1">
-                                                        <i class="fa fa-ban"></i>
-                                                        <span>Deactivate</span>
-                                                    </button>
+                                                    @if ($user['isActive'])
+                                                        <button onclick="activate('{{ $user['id'] }}', this, false)"
+                                                            class="btn btn-sm btn-warning d-flex align-items-center gap-1">
+                                                            <i class="fa fa-ban"></i>
+                                                            <span>Deactivate</span>
+                                                        </button>
+                                                    @else
+                                                        <button onclick="activate('{{ $user['id'] }}', this, true)"
+                                                            class="btn btn-sm btn-success d-flex align-items-center gap-1">
+                                                            <i class="fa fa-check-circle"></i>
+                                                            <span>Activate</span>
+                                                        </button>
+                                                    @endif
 
                                                     {{-- <a href="{{ route('users.show', $user['id']) }}">
                                                         <button
@@ -204,7 +209,7 @@
         });
     </script>
     <script>
-        function deactivateUser(id, btn) {
+        function activate(id, btn, val) {
 
             Swal.fire({
                 title: 'Deactivate user?',
@@ -223,8 +228,8 @@
                     .html('<span class="spinner-border spinner-border-sm"></span>');
 
                 $.ajax({
-                    url: '/users/' + id + '/deactivate',
-                    method: 'PATCH',
+                    url: '/users/' + id + '/' + val,
+                    method: 'put',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -233,12 +238,35 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
-                            text: res.message || 'User berhasil dinonaktifkan',
-                            timer: 1500,
+                            text: res.message || 'Status berhasil diubah',
+                            timer: 1200,
                             showConfirmButton: false
                         });
 
-                        setTimeout(() => location.reload(), 1500);
+                        let badge = $('#status-badge-' + id);
+
+                        if (val === false || val === "false") {
+                            $btn.removeClass('btn-warning')
+                                .addClass('btn-success')
+                                .html('<i class="fa fa-check-circle"></i> <span>Activate</span>')
+                                .attr('onclick', `activate('${id}', this, true)`);
+
+                            badge.removeClass('bg-success')
+                                .addClass('bg-danger')
+                                .text('Nonaktif');
+
+                        } else {
+                            $btn.removeClass('btn-success')
+                                .addClass('btn-warning')
+                                .html('<i class="fa fa-ban"></i> <span>Deactivate</span>')
+                                .attr('onclick', `activate('${id}', this, false)`);
+
+                            badge.removeClass('bg-danger')
+                                .addClass('bg-success')
+                                .text('Aktif');
+                        }
+
+                        $btn.prop('disabled', false);
                     },
                     error: function(xhr) {
 
@@ -321,6 +349,8 @@
                     password: $('#password').val()
                 }),
                 success: function(res) {
+                    $('#addUserForm')[0].reset();
+                    $('#modalTambah').modal('hide');
 
                     Swal.fire({
                         icon: 'success',
@@ -329,10 +359,6 @@
                         timer: 1500,
                         showConfirmButton: false
                     });
-
-                    // 4. Reset + close modal
-                    $('#addUserForm')[0].reset();
-                    $('#addUserModal').modal('hide');
 
                     setTimeout(() => location.reload(), 1500);
 

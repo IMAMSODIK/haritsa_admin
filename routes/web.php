@@ -17,6 +17,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SurveyLayananController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoParentingController;
+use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,7 +36,15 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/users/roles', [UserController::class, 'roles']);
     Route::post('/users/{roleId}', [UserController::class, 'store']);
     Route::patch('/users/{id}', [UserController::class, 'update']);
-    Route::patch('/users/{id}/deactivate', [UserController::class, 'deactivate']);
+    Route::put('/users/{id}/{val}', [UserController::class, 'activate']);
+    Route::get('/get-users', [UserController::class, 'getUsers']);
+
+    Route::get('/voucher', [VoucherController::class, 'index']);
+    Route::post('/vouchers/generate', [VoucherController::class, 'generate']);
+    Route::get('/voucher/template', [VoucherController::class, 'downloadTemplate'])->name('voucher.template');
+    Route::post('/vouchers/import', [VoucherController::class, 'import']);
+    Route::post('/vouchers/assign', [VoucherController::class, 'assign']);
+    Route::get('/vouchers/list', [VoucherController::class, 'getVoucher']);
 
     Route::get('/stores', [StoreController::class, 'index'])->name('store.index');
     Route::post('/stores', [StoreController::class, 'store'])->name('store.store');

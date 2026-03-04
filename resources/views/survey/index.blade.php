@@ -59,29 +59,22 @@
 
             @forelse ($surveys as $survey)
                 <div class="col-md-4 mb-4">
+                    {{-- <div class="card h-100 shadow-sm border-0 survey-card" style="cursor:pointer"
+                        data-survey='@json($survey)' onclick="openEditSurvey(this)"> --}}
                     <div class="card h-100 shadow-sm border-0 survey-card" style="cursor:pointer"
-                        data-survey='@json($survey)' onclick="editSurvey('{{ $survey['id'] }}')">
-
+                        data-survey='@json($survey)'>
                         <div class="card-body d-flex flex-column">
-
-                            {{-- Title --}}
                             <h5 class="card-title mb-1">
                                 {{ $survey['title'] }}
                             </h5>
-
-                            {{-- Description --}}
                             <p class="text-muted small mb-2">
                                 {{ \Illuminate\Support\Str::words(strip_tags($survey['description'] ?? '-'), 25) }}
                             </p>
-
-                            {{-- Created --}}
                             <div class="small text-muted mb-3">
                                 Dibuat {{ date('d M Y', strtotime($survey['createdAt'])) }}
                             </div>
 
                             <div class="mt-auto"></div>
-
-                            {{-- Buttons --}}
 
                             <button class="btn btn-outline-primary w-100"
                                 onclick="event.stopPropagation(); previewSurvey({{ json_encode($survey) }})">
@@ -130,6 +123,32 @@
                         <div class="mb-3">
                             <label class="form-label">Deskripsi Survey</label>
                             <textarea class="form-control" id="survey_description" placeholder="Masukkan deskripsi survey"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Trigger Survey</label>
+                            <select class="form-select" id="trigger_type" required>
+                                <option value="AFTER_TRANSACTION">After Transaction</option>
+                                <option value="AFTER_VOUCHER_CLAIM">After Voucher Claim</option>
+                                <option value="PERIOD">Period</option>
+                                <option value="EVENT">Event</option>
+                            </select>
+                        </div>
+
+                        <div id="periodFields" class="row d-none">
+                            <div class="col-md-6">
+                                <label>Periode Mulai</label>
+                                <input type="datetime-local" class="form-control" id="period_start">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Periode Selesai</label>
+                                <input type="datetime-local" class="form-control" id="period_end">
+                            </div>
+                        </div>
+
+                        <div id="eventField" class="mt-3 d-none">
+                            <label>Event Code</label>
+                            <input type="text" class="form-control" id="event_code">
                         </div>
 
                         <hr>
@@ -195,48 +214,29 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5>Edit Survey Layanan</h5>
+                    <h5>Edit Survey</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <form id="editSurveyForm">
 
-                    <input type="hidden" id="edit_id">
-
                     <div class="modal-body">
 
-                        <!-- TITLE -->
+                        <input type="hidden" id="edit_survey_id">
+
                         <div class="mb-3">
-                            <label class="form-label">Judul Survey</label>
-                            <input type="text" class="form-control" id="edit_title" maxlength="200" required>
+                            <label>Judul</label>
+                            <input type="text" class="form-control" id="edit_survey_title">
                         </div>
 
-                        <!-- DESCRIPTION -->
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi Survey</label>
-                            <textarea class="form-control" id="edit_description"></textarea>
+                            <label>Deskripsi</label>
+                            <textarea class="form-control" id="edit_survey_description"></textarea>
                         </div>
 
-                        <!-- STATUS -->
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="edit_isActive">
-                            <label class="form-check-label">
-                                Survey Aktif
-                            </label>
-                        </div>
-
-                        <hr>
-
-                        <h6>Pertanyaan Survey</h6>
-
-                        <!-- QUESTIONS -->
-                        <div id="edit_questions"></div>
-
-                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addEditQuestion()">
-                            + Tambah Pertanyaan
-                        </button>
-
-                        <div id="editAlert" class="mt-3"></div>
+                        <!-- trigger, period, event sama seperti modal create -->
+                        <!-- questionsContainer versi edit -->
+                        <div id="editQuestionsContainer"></div>
 
                     </div>
 
@@ -256,6 +256,11 @@
         <div class="question-card border rounded p-3 mt-3">
 
             <div class="mb-2">
+                <label>Kategori</label>
+                <input type="text" class="form-control question-category">
+            </div>
+
+            <div class="mb-2">
                 <label>Pertanyaan</label>
                 <input type="text" class="form-control question-text">
             </div>
@@ -263,17 +268,14 @@
             <div class="mb-2">
                 <label>Tipe</label>
                 <select class="form-select question-type">
+                    <option value="LIKERT">Likert</option>
                     <option value="TEXT">Text</option>
-                    <option value="SINGLE_CHOICE">Single Choice</option>
                 </select>
             </div>
 
-            <div class="options-container d-none">
-                <label>Opsi Jawaban</label>
-                <div class="options"></div>
-                <button type="button" class="btn btn-sm btn-secondary mt-2 add-option">
-                    + Tambah Opsi
-                </button>
+            <div class="likert-container">
+                <label>Skala Likert</label>
+                <input type="number" class="form-control likert-scale" value="5" min="2" max="10">
             </div>
 
             <div class="form-check mt-2">
@@ -289,34 +291,40 @@
     </template>
 
     <template id="editQuestionTemplate">
-        <div class="card mb-3 question-item">
-            <div class="card-body">
+        <div class="question-card border rounded p-3 mb-3">
 
-                <input class="form-control mb-2 question-text" placeholder="Pertanyaan">
-
-                <select class="form-select mb-2 question-type">
-                    <option value="TEXT">Text</option>
-                    <option value="SINGLE_CHOICE">Single Choice</option>
-                </select>
-
-                <div class="options"></div>
-
-                <button type="button" class="btn btn-sm btn-outline-secondary mt-1 add-option">
-                    + Tambah Opsi
-                </button>
-
-                <div class="form-check mt-2">
-                    <input type="checkbox" class="form-check-input question-required">
-                    <label class="form-check-label">
-                        Wajib diisi
-                    </label>
-                </div>
-
-                <button type="button" class="btn btn-sm btn-danger mt-2 remove-question">
-                    Hapus
-                </button>
-
+            <div class="mb-2">
+                <label>Kategori</label>
+                <input type="text" class="form-control question-category">
             </div>
+
+            <div class="mb-2">
+                <label>Pertanyaan</label>
+                <input type="text" class="form-control question-text">
+            </div>
+
+            <div class="mb-2">
+                <label>Tipe</label>
+                <select class="form-select question-type">
+                    <option value="TEXT">Text</option>
+                    <option value="LIKERT">Likert</option>
+                </select>
+            </div>
+
+            <div class="mb-2 likert-container">
+                <label>Skala Likert</label>
+                <input type="number" class="form-control likert-scale" min="2" max="10" value="5">
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input question-required">
+                <label class="form-check-label">Wajib</label>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-danger mt-2 remove-question">
+                Hapus
+            </button>
+
         </div>
     </template>
 @endsection
@@ -330,34 +338,41 @@
             }
         });
 
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleString('id-ID');
+        }
+
+        $('#trigger_type').on('change', function() {
+            let type = this.value;
+
+            $('#periodFields').addClass('d-none');
+            $('#eventField').addClass('d-none');
+
+            if (type === 'PERIOD') {
+                $('#periodFields').removeClass('d-none');
+            }
+
+            if (type === 'EVENT') {
+                $('#eventField').removeClass('d-none');
+            }
+        });
+
         function addQuestion() {
             let template = document.getElementById('questionTemplate').content.cloneNode(true);
             let card = template.querySelector('.question-card');
 
             let typeSelect = template.querySelector('.question-type');
-            let optionsContainer = template.querySelector('.options-container');
-            let optionsDiv = template.querySelector('.options');
+            let likertContainer = template.querySelector('.likert-container');
 
-            // change type
             typeSelect.addEventListener('change', function() {
-                if (this.value === 'SINGLE_CHOICE') {
-                    optionsContainer.classList.remove('d-none');
+                if (this.value === 'LIKERT') {
+                    likertContainer.style.display = 'block';
                 } else {
-                    optionsContainer.classList.add('d-none');
-                    optionsDiv.innerHTML = '';
+                    likertContainer.style.display = 'none';
                 }
             });
 
-            // add option
-            template.querySelector('.add-option').addEventListener('click', function() {
-                let input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'form-control mt-1 option-input';
-                input.placeholder = 'Opsi jawaban';
-                optionsDiv.appendChild(input);
-            });
-
-            // remove question
             template.querySelector('.remove-question').addEventListener('click', function() {
                 card.remove();
             });
@@ -366,54 +381,47 @@
         }
 
         function addEditQuestion(q = {}) {
-
             let template = document
                 .getElementById('editQuestionTemplate')
                 .content.cloneNode(true);
 
-            let card = template.querySelector('.question-item');
+            let container = document.getElementById('editQuestionsContainer');
 
+            let card = template.querySelector('.question-card');
+            let category = template.querySelector('.question-category');
             let text = template.querySelector('.question-text');
             let type = template.querySelector('.question-type');
             let required = template.querySelector('.question-required');
-            let optionsDiv = template.querySelector('.options');
+            let likertContainer = template.querySelector('.likert-container');
+            let likertScale = template.querySelector('.likert-scale');
 
+            // SET DATA
+            category.value = q.category || '';
             text.value = q.question || '';
             type.value = q.type || 'TEXT';
             required.checked = q.isRequired || false;
 
-            function toggleOptions() {
-                optionsDiv.innerHTML = '';
-
-                if (type.value === 'SINGLE_CHOICE') {
-                    (q.options || []).forEach(opt => {
-                        let input = document.createElement('input');
-                        input.className = 'form-control mb-1 option-input';
-                        input.value = opt;
-                        optionsDiv.appendChild(input);
-                    });
+            function toggleLikert() {
+                if (type.value === 'LIKERT') {
+                    likertContainer.style.display = 'block';
+                } else {
+                    likertContainer.style.display = 'none';
                 }
             }
 
-            toggleOptions();
+            toggleLikert();
 
-            type.addEventListener('change', toggleOptions);
+            if (q.type === 'LIKERT') {
+                likertScale.value = q.likertScale || 5;
+            }
 
-            template.querySelector('.add-option')
-                .addEventListener('click', () => {
-                    let input = document.createElement('input');
-                    input.className = 'form-control mb-1 option-input';
-                    input.placeholder = 'Opsi';
-                    optionsDiv.appendChild(input);
-                });
+            type.addEventListener('change', toggleLikert);
 
             template.querySelector('.remove-question')
                 .addEventListener('click', () => card.remove());
 
-            document.getElementById('edit_questions')
-                .appendChild(template);
+            container.appendChild(template);
         }
-
 
         function addOption(btn) {
             $(btn).siblings('.options')
@@ -437,21 +445,17 @@
             let questions = [];
 
             $('#questionsContainer .question-card').each(function() {
-                let qText = $(this).find('.question-text').val();
-                let qType = $(this).find('.question-type').val();
-                let required = $(this).find('.question-required').is(':checked');
+                let type = $(this).find('.question-type').val();
 
                 let q = {
-                    question: qText,
-                    type: qType,
-                    isRequired: required
+                    category: $(this).find('.question-category').val(),
+                    question: $(this).find('.question-text').val(),
+                    type: type,
+                    isRequired: $(this).find('.question-required').is(':checked')
                 };
 
-                if (qType === 'SINGLE_CHOICE') {
-                    q.options = [];
-                    $(this).find('.option-input').each(function() {
-                        if ($(this).val()) q.options.push($(this).val());
-                    });
+                if (type === 'LIKERT') {
+                    q.likertScale = parseInt($(this).find('.likert-scale').val());
                 }
 
                 questions.push(q);
@@ -461,9 +465,20 @@
                 title: $('#survey_title').val(),
                 description: $('#survey_description').val(),
                 isActive: true,
-
+                triggerType: $('#trigger_type').val(),
                 questions: questions
             };
+
+            // PERIOD
+            if (payload.triggerType === 'PERIOD') {
+                payload.periodStartAt = new Date($('#period_start').val()).toISOString();
+                payload.periodEndAt = new Date($('#period_end').val()).toISOString();
+            }
+
+            // EVENT
+            if (payload.triggerType === 'EVENT') {
+                payload.eventCode = $('#event_code').val();
+            }
 
             $.ajax({
                 url: '/survey-layanan',
@@ -474,7 +489,6 @@
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
                 },
-
                 error: function(xhr) {
                     $('#articleAlert').html(`
                 <div class="alert alert-danger">
@@ -487,90 +501,155 @@
     </script>
 
     <script>
-        function editSurvey(id) {
+        function openEditSurvey(card) {
 
-            $.get(`/survey-layanan/${id}`, function(res) {
+            let survey = $(card).data('survey');
+            console.log(survey);
 
-                let s = res;
+            if (!survey) return;
 
-                $('#edit_id').val(s.id);
-                $('#edit_title').val(s.title);
-                $('#edit_description').val(s.description);
-                $('#edit_isActive').prop('checked', s.isActive);
+            $('#editSurveyForm')[0].reset();
+            $('#editQuestionsContainer').empty();
 
-                $('#edit_questions').empty();
+            $('#edit_survey_id').val(survey.id);
+            $('#edit_survey_title').val(survey.title);
+            $('#edit_survey_description').val(survey.description);
 
-                s.questions.forEach(q => addEditQuestion(q));
+            $('#edit_trigger_type')
+                .val(survey.triggerType)
+                .trigger('change');
 
-                $('#editSurveyModal').modal('show');
-            });
+            if (survey.triggerType === 'PERIOD') {
+                $('#edit_period_start').val(formatForInput(survey.periodStartAt));
+                $('#edit_period_end').val(formatForInput(survey.periodEndAt));
+            }
+
+            if (survey.triggerType === 'EVENT') {
+                $('#edit_event_code').val(survey.eventCode);
+            }
+
+            if (survey.questions && survey.questions.length > 0) {
+                survey.questions.forEach(q => {
+                    addEditQuestion(q);
+                });
+            }
+
+            $('#editSurveyModal').modal('show');
         }
-
 
         $('#editSurveyForm').on('submit', function(e) {
             e.preventDefault();
 
+            let surveyId = $('#edit_survey_id').val();
+
             let questions = [];
 
-            $('#edit_questions .question-item').each(function() {
+            $('#editQuestionsContainer .question-card').each(function() {
+
+                let type = $(this).find('.question-type').val();
 
                 let q = {
+                    category: $(this).find('.question-category').val(),
                     question: $(this).find('.question-text').val(),
-                    type: $(this).find('.question-type').val(),
+                    type: type,
                     isRequired: $(this).find('.question-required').is(':checked')
                 };
 
-                if (q.type === 'SINGLE_CHOICE') {
-                    q.options = [];
-                    $(this).find('.option-input').each(function() {
-                        if ($(this).val()) q.options.push($(this).val());
-                    });
+                if (type === 'LIKERT') {
+                    q.likertScale = parseInt($(this).find('.likert-scale').val());
                 }
 
                 questions.push(q);
             });
 
             let payload = {
-                title: $('#edit_title').val(),
-                description: $('#edit_description').val(),
-                isActive: $('#edit_isActive').is(':checked'),
+                title: $('#edit_survey_title').val(),
+                description: $('#edit_survey_description').val(),
+                isActive: true,
+                triggerType: $('#edit_trigger_type').val(),
                 questions: questions
             };
 
+            if (payload.triggerType === 'PERIOD') {
+                payload.periodStartAt = new Date($('#edit_period_start').val()).toISOString();
+                payload.periodEndAt = new Date($('#edit_period_end').val()).toISOString();
+            }
+
+            if (payload.triggerType === 'EVENT') {
+                payload.eventCode = $('#edit_event_code').val();
+            }
+
             $.ajax({
-                url: `/survey-layanan/${$('#edit_id').val()}`,
-                method: 'PATCH',
+                url: `/survey-layanan/${surveyId}`,
+                method: 'PUT',
                 contentType: 'application/json',
                 data: JSON.stringify(payload),
-
-                success: res => {
+                success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
                 },
-
-                error: xhr => {
-                    $('#editAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update survey'}
-                </div>
-            `);
+                error: function(xhr) {
+                    Swal.fire('Gagal', xhr.responseJSON?.message || 'Update gagal', 'error');
                 }
             });
         });
 
         function previewSurvey(survey) {
 
-            $('#previewSurveyTitle').text(survey.title);
+            // ===== BASIC INFO =====
+            $('#previewSurveyTitle').text(survey.title || '-');
             $('#previewSurveyDesc').text(survey.description || '-');
 
             $('#previewSurveyStatus')
                 .text(survey.isActive ? 'Aktif' : 'Nonaktif')
-                .toggleClass('bg-success', survey.isActive)
-                .toggleClass('bg-secondary', !survey.isActive);
+                .removeClass('bg-success bg-secondary')
+                .addClass(survey.isActive ? 'bg-success' : 'bg-secondary');
 
+            // ===== CLEAR QUESTIONS =====
             let container = $('#previewSurveyQuestions');
-            container.html('');
+            container.empty();
 
+            // ===== TRIGGER INFO =====
+            let triggerInfo = '';
+
+            switch (survey.triggerType) {
+                case 'PERIOD':
+                    triggerInfo = `
+                <div class="small text-muted mb-3">
+                    Trigger: PERIOD<br>
+                    ${formatDate(survey.periodStartAt)} 
+                    s/d 
+                    ${formatDate(survey.periodEndAt)}
+                </div>
+            `;
+                    break;
+
+                case 'EVENT':
+                    triggerInfo = `
+                <div class="small text-muted mb-3">
+                    Trigger: EVENT<br>
+                    Event Code: ${survey.eventCode || '-'}
+                </div>
+            `;
+                    break;
+
+                default:
+                    triggerInfo = `
+                <div class="small text-muted mb-3">
+                    Trigger: ${survey.triggerType || '-'}
+                </div>
+            `;
+            }
+
+            container.append(triggerInfo);
+
+            if (!survey.questions || survey.questions.length === 0) {
+                container.append(`<div class="text-muted">Tidak ada pertanyaan</div>`);
+                $('#previewSurveyModal').modal('show');
+                return;
+            }
+
+            // ===== RENDER QUESTIONS =====
             survey.questions.forEach((q, i) => {
 
                 let card = `
@@ -578,40 +657,44 @@
             <div class="card-body">
 
                 <div class="fw-bold mb-1">
-                    ${i + 1}. ${q.question}
+                    ${i + 1}. ${q.question || '-'}
                 </div>
 
                 <div class="small text-muted mb-2">
-                    ${q.type === 'TEXT' ? 'Jawaban teks bebas' : 'Pilih satu jawaban'}
+                    Kategori: ${q.category || '-'}
                     ${q.isRequired ? ' • Wajib diisi' : ''}
                 </div>
         `;
 
-                if (q.type === 'SINGLE_CHOICE') {
+                // ===== TEXT =====
+                if (q.type === 'TEXT') {
+                    card += `
+                <div class="form-control bg-light text-muted">
+                    Jawaban teks bebas
+                </div>
+            `;
+                }
 
-                    let options = q.options;
+                // ===== LIKERT =====
+                if (q.type === 'LIKERT') {
 
-                    if (typeof options === 'string') {
-                        try {
-                            options = JSON.parse(options);
-                        } catch {
-                            options = [];
-                        }
+                    let scale = q.likertScale || 5;
+
+                    card += `<div class="d-flex gap-3 flex-wrap">`;
+
+                    for (let s = 1; s <= scale; s++) {
+                        card += `
+                    <span class="badge bg-light text-dark border">
+                        ${s}
+                    </span>
+                `;
                     }
 
-                    if (!Array.isArray(options)) options = [];
-
-                    card += `<ul class="list-group list-group-flush">`;
-
-                    options.forEach(opt => {
-                        card += `
-                    <li class="list-group-item">
-                        🔘 ${opt}
-                    </li>
-                `;
-                    });
-
-                    card += `</ul>`;
+                    card += `</div>
+                <div class="small text-muted mt-2">
+                    Skala 1 - ${scale}
+                </div>
+            `;
                 }
 
                 card += `</div></div>`;
@@ -647,7 +730,7 @@
                             $(btn).closest('.col-md-4').remove();
                         },
                         error: function(xhr) {
-                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Artikel',
+                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Survey',
                                 'error');
                         }
                     });

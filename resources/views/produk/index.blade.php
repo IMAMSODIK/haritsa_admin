@@ -117,62 +117,73 @@
         </div>
 
         <div class="row g-4">
-
             @forelse($produks as $p)
                 @php
                     $photo = $p['photos'][0]['photoUrl'] ?? 'https://via.placeholder.com/400';
+                    $stores = $p['store'] ?? [];
+                    $isAllStores = $p['isAllStores'] ?? false;
                 @endphp
 
                 <div class="col-md-3 mb-4">
                     <div class="card h-100 border-0 shadow-sm product-card" data-product='@json($p)'>
-
-                        <!-- IMAGE -->
                         <div class="product-image">
-                            <img src="{{ $photo }}">
+                            <img src="{{ $photo }}" class="img-fluid rounded-top">
                         </div>
-
-                        <!-- BODY -->
                         <div class="card-body d-flex flex-column">
-
-                            <div class="product-title">
+                            <div class="product-title fw-bold">
                                 {{ $p['brand']['name'] ?? '-' }}
                             </div>
-
                             <small class="text-muted mb-2">
                                 {{ $p['name'] }}
                             </small>
+                            <div class="mb-2">
+                                <span class="badge bg-light text-dark">
+                                    {{ $p['category']['name'] ?? '-' }}
+                                </span>
+                            </div>
+                            <div class="mb-2">
 
-                            <small class="text-muted mb-2 badge bg-light">
-                                {{ $p['category']['name'] ?? '-' }}
-                            </small>
+                                @if ($isAllStores)
+                                    <span class="badge bg-success">
+                                        Semua Toko
+                                    </span>
+                                @elseif(count($stores) > 0)
+                                    <span class="badge bg-secondary">
+                                        {{ $stores['name'] }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning text-dark">
+                                        Tidak ada toko
+                                    </span>
+                                @endif
 
-                            <div class="price">
+                            </div>
+                            <div class="price mb-2">
 
                                 @if ($p['promoPrice'] && $p['promoPrice'] < $p['price'])
-                                    <div class="promo-price">
+                                    <div class="fw-bold text-danger">
                                         Rp {{ number_format($p['promoPrice'], 0, ',', '.') }}
                                     </div>
 
-                                    <div class="original-price">
+                                    <small class="text-muted text-decoration-line-through">
                                         Rp {{ number_format($p['price'], 0, ',', '.') }}
-                                    </div>
+                                    </small>
                                 @else
-                                    <div class="promo-price">
+                                    <div class="fw-bold">
                                         Rp {{ number_format($p['price'], 0, ',', '.') }}
                                     </div>
                                 @endif
 
                             </div>
 
-
-                            <!-- BUTTONS -->
                             <div class="mt-auto d-flex gap-2 pt-3">
-                                <button class="btn btn-light border w-100 edit-produk"
-                                    onclick="editProduct('{{ $p['id'] }}', this, event)">Edit
+                                <button class="btn btn-light border w-100 edit-produk" data-id="{{ $p['id'] }}">
+                                    Edit
                                 </button>
 
                                 <button class="btn btn-light border text-danger w-100"
-                                    onclick="deleteProduct('{{ $p['id'] }}', this)">Hapus
+                                    onclick="deleteProduct('{{ $p['id'] }}', this)">
+                                    Hapus
                                 </button>
                             </div>
 
@@ -195,54 +206,74 @@
     <div class="modal fade" id="productPreviewModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-
                 <div class="modal-header">
-                    <h5 id="previewTitle"></h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="previewTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
-
                     <!-- carousel foto -->
                     <div id="previewCarousel" class="carousel slide mb-3">
                         <div class="carousel-inner" id="previewPhotos"></div>
 
                         <button class="carousel-control-prev" type="button" data-bs-target="#previewCarousel"
                             data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon"></span>
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
                         </button>
 
                         <button class="carousel-control-next" type="button" data-bs-target="#previewCarousel"
                             data-bs-slide="next">
-                            <span class="carousel-control-next-icon"></span>
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
                         </button>
                     </div>
 
-                    <p id="previewDescription"></p>
-
-                    <div class="row">
-                        <div class="col">
-                            <b>Harga</b><br>
-                            <span id="previewPrice" class="text-success"></span>
-                        </div>
-
-                        <div class="col">
-                            <b>Promo</b><br>
-                            <span id="previewPromo"></span>
-                        </div>
-
-                        <div class="col">
-                            <b>Stock</b><br>
-                            <span id="previewStock"></span>
-                        </div>
+                    <!-- Informasi Brand dan Kategori -->
+                    <div class="mb-3">
+                        <span class="badge bg-primary me-2" id="previewBrand"></span>
+                        <span class="badge bg-secondary" id="previewCategory"></span>
                     </div>
 
-                </div>
+                    <!-- Informasi Toko -->
+                    <div class="mb-3" id="previewStoreContainer">
+                        <small class="text-muted">Toko:</small>
+                        <span id="previewStore" class="ms-2"></span>
+                    </div>
 
+                    <!-- Deskripsi -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Deskripsi</h6>
+                        <p id="previewDescription" class="text-muted"></p>
+                    </div>
+
+                    <!-- Informasi Harga dan Stok dalam Grid -->
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <small class="text-muted d-block">Harga Normal</small>
+                                <span class="fw-bold" id="previewPrice"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <small class="text-muted d-block">Harga Promo</small>
+                                <span class="fw-bold text-danger" id="previewPromo"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <small class="text-muted d-block">Stok</small>
+                                <span class="fw-bold" id="previewStock"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="addStoreModal">
         <div class="modal-dialog modal-lg">
@@ -255,6 +286,14 @@
 
                 <form id="addProductForm">
                     <div class="modal-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="p_isAllStores">
+                                <label class="form-check-label">
+                                    Berlaku untuk semua toko
+                                </label>
+                            </div>
+                        </div>
 
                         <!-- STORE -->
                         <div class="mb-3">
@@ -263,8 +302,8 @@
                                 <input type="text" id="p_storeName" class="form-control" readonly
                                     placeholder="Pilih store">
                                 <input type="hidden" id="p_storeId">
-                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#storePickerModal">
+                                <button class="btn btn-outline-primary" id="select-store" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#storePickerModal">
                                     Pilih
                                 </button>
                             </div>
@@ -292,7 +331,7 @@
                         <div class="mb-3">
                             <label class="form-label">Kategori</label>
                             <div class="input-group">
-                                <input class="form-control" id="p_category" placeholder="Kategori produk">
+                                <input class="form-control" id="p_category" placeholder="Kategori produk" readonly>
                                 <input type="hidden" id="p_categoryId">
                                 <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
                                     data-bs-target="#categoryPickerModal">
@@ -331,12 +370,6 @@
                             <input class="form-control" id="p_stock" placeholder="Jumlah stock">
                         </div>
 
-                        <!-- VERSION -->
-                        <div class="mb-3">
-                            <label class="form-label">Versi Produk</label>
-                            <input class="form-control" id="p_version" placeholder="v1.0">
-                        </div>
-
                         <!-- FOTO URL -->
                         <div class="mb-3">
                             <label class="form-label">Upload Foto Produk (max 5)</label>
@@ -372,15 +405,23 @@
                 <form id="editProductForm">
                     <input type="hidden" id="edit_product_id">
                     <div class="modal-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="edit_isAllStores">
+                                <label class="form-check-label">
+                                    Berlaku untuk semua toko
+                                </label>
+                            </div>
+                        </div>
 
                         <!-- STORE -->
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="edit_storeName" class="form-control" readonly>
+                                <input type="text" id="edit_storeName" class="form-control" readonly placeholder="Pilih nama store">
                                 <input type="hidden" id="edit_storeId">
-                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#storePickerModal">
+                                <button class="btn btn-outline-primary" id="edit-select-store" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#storePickerModal">
                                     Pilih
                                 </button>
                             </div>
@@ -445,12 +486,6 @@
                         <div class="mb-3">
                             <label class="form-label">Stock</label>
                             <input class="form-control" id="edit_stock">
-                        </div>
-
-                        <!-- Version -->
-                        <div class="mb-3">
-                            <label class="form-label">Versi Produk</label>
-                            <input class="form-control" id="edit_version">
                         </div>
 
                         <!-- Foto URL -->
@@ -545,6 +580,34 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         let modal = "addStoreModal";
+        let editSelectedStoreIds = [];
+
+        $('#p_isAllStores').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#p_storeId').val('');
+                $('#p_storeName').val('Semua Toko');
+                $('#p_storeName').prop('disabled', true);
+                $('#select-store').css('display', 'none');
+            } else {
+                $('#p_storeName').val('');
+                $('#p_storeName').prop('disabled', false);
+                $('#select-store').css('display', '');
+            }
+        });
+
+        $('#edit_isAllStores').on('change', function() {
+            if ($(this).is(':checked')) {
+                editSelectedStoreIds = [];
+                $('#edit_storeName').val('Semua Toko');
+                $('#edit_storeName').prop('disabled', true);
+                $('#edit-select-store').css('display', 'none');
+            } else {
+                $('#edit_storeName').val('');
+                $('#edit_storeName').prop('disabled', false);
+                $('#edit-select-store').css('display', '');
+            }
+
+        });
 
         $(".add-produk").on("click", function() {
             modal = "addStoreModal";
@@ -815,22 +878,37 @@
 
             let formData = new FormData();
 
-            // text data
-            formData.append('storeId', $('#p_storeId').val());
+            let isAllStores = $('#p_isAllStores').is(':checked');
+
+            formData.append('isAllStores', isAllStores);
+
+            if (!isAllStores) {
+                let storeId = $('#p_storeId').val();
+
+                if (!storeId) {
+                    alert('Pilih minimal satu toko');
+                    btn.prop('disabled', false).text('Simpan Produk');
+                    return;
+                }
+
+                formData.append('storeId', storeId)
+            }
+
+            // TEXT DATA
             formData.append('sku', $('#p_sku').val());
             formData.append('name', $('#p_name').val());
             formData.append('description', $('#p_description').val());
-            formData.append('category', $('#p_categoryId').val());
-            formData.append('brand', $('#p_brandId').val());
+            formData.append('categoryId', $('#p_categoryId').val());
+            formData.append('brandId', $('#p_brandId').val());
             formData.append('price', cleanNumber($('#p_price').val()));
             formData.append('promoPrice', cleanNumber($('#p_promoPrice').val()));
             formData.append('stock', $('#p_stock').val());
-            formData.append('version', $('#p_version').val());
+            // formData.append('version', $('#p_version').val());
             formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-            // multiple photos
+            // MULTIPLE PHOTOS
             selectedFiles.forEach(file => {
-                formData.append('photos[]', file);
+                formData.append('photos', file);
             });
 
             $.ajax({
@@ -849,7 +927,7 @@
 
                     $('#addProductAlert').html(`
                 <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal menyimpan produk'}
+                    ${xhr.responseJSON?.message || 'Gagal menyimpan produk'}
                 </div>
             `);
                 }
@@ -891,53 +969,90 @@
 
     <script>
         $(document).on('click', '.product-card', function() {
-
             let p = $(this).data('product');
 
-            $('#previewTitle').text(p.name);
-            $('#previewDescription').text(p.description || '-');
+            // Informasi dasar
+            $('#previewTitle').text(p.name || 'Produk');
 
-            $('#previewPrice').text(
-                'Rp ' + Number(p.price).toLocaleString('id-ID')
-            );
+            // Brand dan Kategori
+            $('#previewBrand').text(p.brand?.name || 'Tanpa Brand');
+            $('#previewCategory').text(p.category?.name || 'Tanpa Kategori');
 
-            $('#previewPromo').text(
-                p.promoPrice ?
-                'Rp ' + Number(p.promoPrice).toLocaleString('id-ID') :
-                '-'
-            );
+            // Informasi Toko
+            let stores = p.store || [];
+            let isAllStores = p.isAllStores || false;
+            let storeHtml = '';
 
-            $('#previewStock').text(p.stock);
+            if (isAllStores) {
+                storeHtml = '<span class="badge bg-success">Semua Toko</span>';
+            } else if (stores.length > 0) {
+                if (Array.isArray(stores)) {
+                    storeHtml = stores.map(store =>
+                        `<span class="badge bg-secondary me-1">${store.name || 'Toko'}</span>`
+                    ).join('');
+                } else {
+                    storeHtml = `<span class="badge bg-secondary">${stores.name || 'Toko'}</span>`;
+                }
+            } else {
+                storeHtml = '<span class="badge bg-warning text-dark">Tidak ada toko</span>';
+            }
+            $('#previewStore').html(storeHtml);
 
-            // foto carousel
+            // Deskripsi
+            $('#previewDescription').text(p.description || 'Tidak ada deskripsi');
+
+            // Harga
+            let price = p.price || 0;
+            let promoPrice = p.promoPrice || 0;
+
+            $('#previewPrice').text('Rp ' + Number(price).toLocaleString('id-ID'));
+
+            if (promoPrice && promoPrice < price) {
+                $('#previewPromo').html(`
+                Rp ${Number(promoPrice).toLocaleString('id-ID')}
+                <small class="text-muted text-decoration-line-through d-block">
+                    Rp ${Number(price).toLocaleString('id-ID')}
+                </small>
+            `);
+            } else {
+                $('#previewPromo').text(promoPrice ?
+                    'Rp ' + Number(promoPrice).toLocaleString('id-ID') :
+                    'Tidak ada promo'
+                );
+            }
+
+            // Stok
+            $('#previewStock').text(p.stock !== undefined ? p.stock + ' unit' : 'Tidak tersedia');
+
+            // Foto carousel
             let photos = p.photos || [];
             let html = '';
 
             if (photos.length === 0) {
                 html = `
-            <div class="carousel-item active">
-                <img src="https://via.placeholder.com/600"
-                     class="d-block w-100">
-            </div>
-        `;
-            } else {
-                photos.forEach((ph, i) => {
-                    html += `
-                <div class="carousel-item ${i === 0 ? 'active' : ''}">
-                    <img src="${ph.photoUrl}"
+                <div class="carousel-item active">
+                    <img src="https://via.placeholder.com/600x350?text=Tidak+Ada+Foto" 
                          class="d-block w-100"
                          style="height:350px; object-fit:cover;">
                 </div>
             `;
+            } else {
+                photos.forEach((ph, i) => {
+                    html += `
+                    <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                        <img src="${ph.photoUrl || 'https://via.placeholder.com/600x350'}" 
+                             class="d-block w-100"
+                             style="height:350px; object-fit:cover;"
+                             alt="Foto produk ${i+1}">
+                    </div>
+                `;
                 });
             }
 
             $('#previewPhotos').html(html);
 
-            new bootstrap.Modal(
-                document.getElementById('productPreviewModal')
-            ).show();
-
+            // Tampilkan modal
+            new bootstrap.Modal(document.getElementById('productPreviewModal')).show();
         });
     </script>
 
@@ -946,39 +1061,55 @@
         let shouldReload = false;
         let newFiles = [];
 
-        function editProduct(id, btn, event) {
-            event.stopPropagation();
+        $(document).on('click', '.edit-produk', function(e) {
+            e.stopPropagation();
+            let id = $(this).data('id');
 
             $.get(`/products/${id}`, function(res) {
+
                 let p = res.data.data;
 
-                console.log(p.categoryId)
-                console.log(p.brandId)
-
                 $('#edit_product_id').val(p.id);
-                $('#edit_storeId').val(p.store.id);
-                $('#edit_storeName').val(p.store.name || '');
+
+                if (p.isAllStores) {
+                    $('#edit_isAllStores').prop('checked', true);
+                    $('#edit_storeName').val('Semua Toko');
+                    $('#edit_storeName').prop('disabled', true);
+                    $('#edit-select-store').css('display', 'none');
+                } else {
+                    $('#edit_isAllStores').prop('checked', false);
+
+                    if (p.stores && p.stores.length > 0) {
+                        let names = p.stores.map(s => s.name).join(', ');
+                        $('#edit_storeName').val(names);
+                    }
+                }
+
                 $('#edit_sku').val(p.sku);
                 $('#edit_name').val(p.name);
                 $('#edit_description').val(p.description);
-                $('#p_editCategoryId').val(p.category.id || '');
-                $('#p_editCategory').val(p.category.name || '');
-                $('#p_editBrandId').val(p.brand.id || '');
-                $('#p_editBrand').val(p.brand.name || '');
+                $('#p_editCategoryId').val(p.category?.id || '');
+                $('#p_editCategory').val(p.category?.name || '');
+                $('#p_editBrandId').val(p.brand?.id || '');
+                $('#p_editBrand').val(p.brand?.name || '');
                 $('#edit_price').val(p.price);
                 $('#edit_promoPrice').val(p.promoPrice);
                 $('#edit_stock').val(p.stock);
-                $('#edit_version').val(p.version);
+                // $('#edit_version').val(p.version);
 
                 renderExistingPhotos(p.photos || []);
                 newFiles = [];
                 $('#newPhotoPreview').html('');
 
-                $('#editProductModal').modal('show');
-            }).fail(() => {
+                let modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                modal.show();
+
+            }).fail(function(err) {
+                console.error(err);
                 Swal.fire('Error', 'Gagal mengambil data produk', 'error');
             });
-        }
+
+        });
 
         function renderExistingPhotos(photos) {
             let container = $('#existingPhotos');
@@ -1010,7 +1141,6 @@
             });
         }
 
-
         function deletePhoto(photoId, event) {
             event.preventDefault();
 
@@ -1036,7 +1166,6 @@
                 }
             });
         }
-
 
         $('#newPhotos').on('change', function() {
             let files = Array.from(this.files);
@@ -1089,29 +1218,34 @@
         $('#editProductForm').on('submit', function(e) {
             e.preventDefault();
 
-            shouldReload = true; // hanya tombol ini yang boleh reload
-
             let btn = $('#editProductForm button[type="submit"]');
             btn.prop('disabled', true).text('Updating...');
 
             let id = $('#edit_product_id').val();
+            let isAllStores = $('#edit_isAllStores').is(':checked');
+
+            let payload = {
+                isAllStores: isAllStores,
+                sku: $('#edit_sku').val(),
+                name: $('#edit_name').val(),
+                description: $('#edit_description').val(),
+                categoryId: $('#p_editCategoryId').val(),
+                brandId: $('#p_editBrandId').val(),
+                price: cleanNumber($('#edit_price').val()),
+                promoPrice: cleanNumber($('#edit_promoPrice').val()),
+                stock: $('#edit_stock').val(),
+                // version: $('#edit_version').val(),
+                _token: $('meta[name="csrf-token"]').attr('content')
+            };
+
+            if (!isAllStores) {
+                payload.storeId = $("#edit_storeId").val();
+            }
 
             $.ajax({
                 url: `/products/${id}`,
                 method: 'PATCH',
-                data: {
-                    storeId: $('#edit_storeId').val(),
-                    sku: $('#edit_sku').val(),
-                    name: $('#edit_name').val(),
-                    description: $('#edit_description').val(),
-                    category: $('#p_editCategoryId').val(),
-                    brand: $('#p_editBrandId').val(),
-                    price: $('#edit_price').val(),
-                    promoPrice: $('#edit_promoPrice').val(),
-                    stock: $('#edit_stock').val(),
-                    version: $('#edit_version').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                data: payload,
                 success: function() {
 
                     let afterSuccess = () => {
@@ -1123,9 +1257,7 @@
                             showConfirmButton: false
                         });
 
-                        if (shouldReload) {
-                            setTimeout(() => location.reload(), 2000);
-                        }
+                        setTimeout(() => location.reload(), 2000);
                     };
 
                     if (newFiles.length > 0) {
@@ -1146,9 +1278,9 @@
                         afterSuccess();
                     }
                 },
-                error: function() {
+                error: function(xhr) {
                     btn.prop('disabled', false).text('Update Produk');
-                    Swal.fire('Error', 'Update produk gagal', 'error');
+                    Swal.fire('Error', xhr.responseJSON?.server || 'Update produk gagal', 'error');
                 }
             });
         });

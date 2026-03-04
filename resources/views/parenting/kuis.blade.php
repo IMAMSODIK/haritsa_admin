@@ -49,7 +49,7 @@
 
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addArticleModal">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuizModal">
                     <i class="fa fa-plus"></i> Tambah Artikel
                 </button>
             </div>
@@ -113,8 +113,7 @@
                             <div class="mt-auto"></div>
 
                             {{-- Buttons --}}
-                            <button class="btn btn-outline-primary w-100"
-                                onclick='event.stopPropagation();'>
+                            <button class="btn btn-outline-primary w-100" onclick='event.stopPropagation();'>
                                 Sematkan Kuis
                             </button>
 
@@ -140,63 +139,73 @@
 
     </div>
 
-    <div class="modal fade" id="addArticleModal">
+    <div class="modal fade" id="addQuizModal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5>Tambah Artikel Parenting</h5>
+                    <h5>Tambah Kuis Parenting</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form id="addArticleForm">
-
+                <form id="addQuizForm" enctype="multipart/form-data">
+                    @csrf
                     <div class="modal-body">
 
                         <!-- TITLE -->
                         <div class="mb-3">
-                            <label class="form-label">Judul Artikel</label>
-                            <input type="text" class="form-control" id="article_title" maxlength="200" required>
-                        </div>
-
-                        <!-- CONTENT (RICH TEXT) -->
-                        <div class="mb-3">
-                            <label class="form-label">Isi Artikel</label>
-                            <div id="editor" style="height:200px;"></div>
-                        </div>
-
-                        <!-- MODERATOR -->
-                        <div class="mb-3">
-                            <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="article_moderator" maxlength="255" required>
+                            <label class="form-label">Judul Kuis</label>
+                            <input type="text" class="form-control" name="title" maxlength="200" required>
                         </div>
 
                         <!-- VIDEO -->
                         <div class="mb-3">
-                            <label class="form-label">Link YouTube (optional)</label>
-                            <input type="text" class="form-control" id="article_videoUrl"
-                                oninput="generateThumbnailArticle()">
+                            <label class="form-label">Video URL (Optional)</label>
+                            <input type="text" class="form-control" name="videoUrl">
                         </div>
 
-                        <!-- Thumbnail preview -->
-                        <div class="mb-3 text-center">
-                            <img id="articleThumb" style="max-width:100%;display:none;border-radius:8px;">
-                            <input type="hidden" id="article_thumbnailUrl">
+                        <!-- START & END -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Start At</label>
+                                <input type="datetime-local" class="form-control" name="startAt" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label>End At</label>
+                                <input type="datetime-local" class="form-control" name="endAt" required>
+                            </div>
                         </div>
 
-                        <!-- SCORE -->
+                        <!-- DURATION -->
                         <div class="mb-3">
-                            <label class="form-label">Point</label>
-                            <input type="number" class="form-control" id="article_score" min="0" required>
+                            <label>Durasi (Menit)</label>
+                            <input type="number" class="form-control" name="durationMin" min="10" required>
                         </div>
 
-                        <div id="articleAlert"></div>
+                        <!-- THUMBNAIL -->
+                        <div class="mb-3">
+                            <label>Thumbnail</label>
+                            <input type="file" class="form-control" name="thumbnail"
+                                accept="image/png,image/jpeg,image/jpg">
+                        </div>
+
+                        <hr>
+
+                        <!-- QUESTIONS -->
+                        <h6>Daftar Soal</h6>
+
+                        <div id="questionsContainer"></div>
+
+                        <button type="button" class="btn btn-sm btn-primary mt-2" onclick="addQuestion()">
+                            + Tambah Soal
+                        </button>
 
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-primary w-100">
-                            Simpan Artikel
+                        <button type="submit" class="btn btn-success w-100">
+                            Simpan Kuis
                         </button>
                     </div>
 
@@ -205,7 +214,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="previewArticleModal">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -246,7 +254,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="editArtikelModal">
         <div class="modal-dialog modal-lg">
@@ -326,88 +333,169 @@
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        let quill = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: 'Tulis artikel di sini...'
-        });
+        let questionIndex = 0;
 
-        let editQuill = new Quill('#edit_editor', {
-            theme: 'snow'
-        });
+        function addQuestion() {
+
+            const qIndex = questionIndex++;
+
+            const html = `
+        <div class="card mt-3 question-block">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+                    <h6>Soal</h6>
+                    <button type="button" class="btn btn-sm btn-danger"
+                        onclick="this.closest('.question-block').remove()">
+                        Hapus
+                    </button>
+                </div>
+
+                <input type="text"
+                    class="form-control mb-2 question-text"
+                    name="questions[${qIndex}][text]"
+                    placeholder="Tulis soal..."
+                    required>
+
+                <input type="number"
+                    class="form-control mb-3 question-score"
+                    name="questions[${qIndex}][score]"
+                    placeholder="Score"
+                    min="0"
+                    required>
+
+                <div id="options-${qIndex}"></div>
+
+                <button type="button"
+                    class="btn btn-sm btn-info"
+                    onclick="addOption(${qIndex})">
+                    + Tambah Jawaban
+                </button>
+
+            </div>
+        </div>
+    `;
+
+            document.getElementById('questionsContainer')
+                .insertAdjacentHTML('beforeend', html);
+        }
+
+        function addOption(qIndex) {
+
+            const container = document.getElementById(`options-${qIndex}`);
+            const optionCount = container.children.length;
+
+            const html = `
+                <div class="input-group mb-2 option-block">
+                    <input type="text"
+                        class="form-control"
+                        name="questions[${qIndex}][options][${optionCount}][text]"
+                        placeholder="Teks jawaban..."
+                        required>
+
+                    <div class="input-group-text">
+                        <input type="radio"
+                            name="correct_${qIndex}"
+                            onclick="setCorrect(${qIndex}, ${optionCount})">
+                    </div>
+
+                    <button type="button"
+                        class="btn btn-danger"
+                        onclick="this.parentElement.remove()">
+                        X
+                    </button>
+
+                    <input type="hidden"
+                        name="questions[${qIndex}][options][${optionCount}][isCorrect]"
+                        value="false">
+                </div>
+                `;
+
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function setCorrect(qIndex, optionIndex) {
+
+            const hiddenInputs =
+                document.querySelectorAll(`#options-${qIndex} input[type=hidden]`);
+
+            hiddenInputs.forEach((input, index) => {
+                input.value = index === optionIndex ? "true" : "false";
+            });
+        }
     </script>
+
     <script>
-        function extractYouTubeId(url) {
-            let regExp =
-                /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-
-            let match = url.match(regExp);
-            return (match && match[2].length === 11) ?
-                match[2] :
-                null;
-        }
-
-        function generateThumbnailArticle() {
-            let url = $('#article_videoUrl').val();
-            let id = extractYouTubeId(url);
-
-            if (!id) {
-                $('#articleThumb').hide();
-                return;
-            }
-
-            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-
-            $('#articleThumb').attr('src', thumb).show();
-            $('#article_thumbnailUrl').val(thumb);
-        }
-
-        function generateEditThumbnail() {
-            let url = $('#edit_videoUrl').val();
-            let id = extractYouTubeId(url);
-
-            if (!id) {
-                $('#edit_thumbnail_preview').hide();
-                return;
-            }
-
-            let thumb = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-
-            $('#edit_thumbnail_preview')
-                .attr('src', thumb)
-                .show();
-
-            $('#edit_thumbnail').val(thumb);
-        }
-
-        $('#addArticleForm').on('submit', function(e) {
+        $('#addQuizForm').on('submit', function(e) {
             e.preventDefault();
 
-            let content = quill.root.innerHTML;
+            let btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Menyimpan...');
+
+            let form = document.getElementById('addQuizForm');
+            let fd = new FormData(form);
+
+            // 🔥 KONVERSI datetime-local KE ISO 8601
+            let startAt = new Date(fd.get('startAt')).toISOString();
+            let endAt = new Date(fd.get('endAt')).toISOString();
+
+            fd.set('startAt', startAt);
+            fd.set('endAt', endAt);
+
+            // 🔥 BANGUN ULANG QUESTIONS MENJADI JSON
+            let questions = [];
+
+            $('.question-block').each(function() {
+
+                let text = $(this).find('.question-text').val();
+                let scoreVal = $(this).find('.question-score').val();
+
+                let score = parseInt(scoreVal);
+                if (isNaN(score)) score = 0;
+
+                let options = [];
+
+                $(this).find('.option-block').each(function() {
+
+                    let optText = $(this).find('.option-text').val();
+                    let isCorrect = $(this).find('.option-is-correct').val() === "true";
+
+                    options.push({
+                        text: optText,
+                        isCorrect: isCorrect
+                    });
+
+                });
+
+                questions.push({
+                    text: text,
+                    score: score,
+                    options: options
+                });
+
+            });
+
+            fd.delete('questions');
+            fd.append('questions', JSON.stringify(questions));
 
             $.ajax({
-                url: '/artikel-parenting-parenting',
+                url: '/kuis-parenting',
                 method: 'POST',
-                data: {
-                    title: $('#article_title').val(),
-                    content: content,
-                    moderator: $('#article_moderator').val(),
-                    videoUrl: $('#article_videoUrl').val(),
-                    score: $('#article_score').val(),
-                    thumbnailUrl: $('#article_thumbnailUrl').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function(res) {
                     Swal.fire('Berhasil!', res.message, 'success')
                         .then(() => location.reload());
                 },
-
                 error: function(xhr) {
-                    $('#articleAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal membuat artikel'}
-                </div>
-            `);
+                    btn.prop('disabled', false).text('Simpan Kuis');
+
+                    Swal.fire(
+                        'Error',
+                        xhr.responseJSON?.message || 'Gagal menyimpan kuis',
+                        'error'
+                    );
                 }
             });
         });

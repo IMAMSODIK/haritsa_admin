@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\ApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -193,12 +195,10 @@ class UserController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function deactivate(ApiService $api, $id)
+    public function activate(ApiService $api, $id, $val)
     {
         try {
-
-            $result = $api->request('patch', "/users/$id/deactivate");
-
+            $result = $api->request('put', "/users/$id/$val");
             return response()->json([
                 'status' => 'success',
                 'message' => 'User berhasil dinonaktifkan'
@@ -207,7 +207,7 @@ class UserController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal deactivate user'
+                'message' => 'Gagal mengubah status user'
             ], 500);
         }
     }
@@ -226,6 +226,36 @@ class UserController extends Controller
             ]);
         } catch (\Exception $e) {
             return back()->with('error', 'Server profile tidak bisa dihubungi');
+        }
+    }
+
+    public function getUsers()
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->get(env('API_END_POINT') . '/users');
+
+            if ($response->failed()) {
+
+                Log::error('Get Users API Error', [
+                    'status' => $response->status(),
+                    'body'   => $response->body()
+                ]);
+
+                return response()->json([
+                    'message' => 'Gagal mengambil data user'
+                ], $response->status());
+            }
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+
+            Log::error('Get Users System Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Internal Server Error'
+            ], 500);
         }
     }
 }

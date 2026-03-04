@@ -96,3 +96,43 @@ artikel parenting (banner dan type) (done)
 video parenting (banner dan type, video link wajib) (done)
 kuis parenting 
 survey layanan (update) (done)
+
+
+
+
+
+
+
+
+survey layanan bisa pakai skala
+jika skala 5 kebawah, maka muncul teks
+kategori waktu kemunculan survey
+
+
+harga
+pilihan barang
+kelengkapana
+service
+masukan (optional)
+
+
+
+voucher ada 2
+promo (jika belanja > xxxx bisa dapat diskon) dari affari
+generate voucher (dari haritsa)
+distribusi voucher pakai select user
+
+field voucher (previx, nomor voucher dan nominal)
+aksi claim voucher
+
+tambah user dengan role kasir
+
+
+unutk penawaran produk ada pilihan untuk all toko
+
+
+
+
+
+
+ru.a402d.rawbtprinter
