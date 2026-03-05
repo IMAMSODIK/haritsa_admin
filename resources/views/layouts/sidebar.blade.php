@@ -128,6 +128,19 @@
 
                 <li class="sidebar-main-title">
                     <div>
+                        <h6 class="">Transaksi</h6>
+                    </div>
+                </li>
+
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/transaksi">
+                        <i class="fa fa-exchange text-white" aria-hidden="true"></i>
+                        <span class="">Data Transaksi</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-main-title">
+                    <div>
                         <h6 class="">Parenting Edu</h6>
                     </div>
                 </li>

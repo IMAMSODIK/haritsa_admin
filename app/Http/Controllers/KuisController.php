@@ -13,120 +13,139 @@ class KuisController extends Controller
     {
         try {
 
-            $result = $api->request('get', '/parenting/article');
+            $result = $api->request('get', '/parenting/quiz');
 
             if (!$result || ($result['status'] ?? null) !== 'success') {
-                return back()->with('error', 'Gagal mengambil data Artikel');
+                return back()->with('error', 'Gagal mengambil data Kuis');
             }
 
             return view('parenting.kuis', [
-                'pageTitle' => 'Daftar Artikel',
-                'articles' => $result['data'] ?? []
+                'pageTitle' => 'Daftar Kuis',
+                'kuises' => $result['data'] ?? []
             ]);
         } catch (\Exception $e) {
-            return back()->with('error', 'Server Artikel tidak bisa dihubungi');
+            return back()->with('error', 'Server Kuis tidak bisa dihubungi');
         }
     }
 
     public function store(Request $r)
-{
-    try {
+    {
+        try {
 
-        $multipart = [
-            ['name' => 'title',       'contents' => (string) $r->title],
-            ['name' => 'startAt',     'contents' => (string) $r->startAt],
-            ['name' => 'endAt',       'contents' => (string) $r->endAt],
-            ['name' => 'durationMin', 'contents' => (string) $r->durationMin],
-        ];
+            $http = Http::withToken(session('accessToken'));
 
-        // OPTIONAL
-        if ($r->filled('videoUrl')) {
-            $multipart[] = [
-                'name' => 'videoUrl',
-                'contents' => (string) $r->videoUrl
-            ];
-        }
+            // attach file thumbnail jika ada
+            if ($r->hasFile('thumbnail')) {
 
-        // 🔥 DECODE QUESTIONS
-        $questions = json_decode($r->questions, true);
-
-        if (!$questions || count($questions) < 1) {
-            return response()->json([
-                'message' => 'Minimal 1 soal diperlukan'
-            ], 422);
-        }
-
-        // 🔥 LOOP QUESTIONS MENJADI MULTIPART ARRAY
-        foreach ($questions as $qIndex => $question) {
-
-            $multipart[] = [
-                'name' => "questions[$qIndex][text]",
-                'contents' => (string) $question['text']
-            ];
-
-            $multipart[] = [
-                'name' => "questions[$qIndex][score]",
-                'contents' => (string) intval($question['score'])
-            ];
-
-            foreach ($question['options'] as $oIndex => $option) {
-
-                $multipart[] = [
-                    'name' => "questions[$qIndex][options][$oIndex][text]",
-                    'contents' => (string) $option['text']
-                ];
-
-                $multipart[] = [
-                    'name' => "questions[$qIndex][options][$oIndex][isCorrect]",
-                    'contents' => $option['isCorrect'] ? 'true' : 'false'
-                ];
+                $http = $http->attach(
+                    'thumbnail',
+                    file_get_contents($r->file('thumbnail')->getRealPath()),
+                    $r->file('thumbnail')->getClientOriginalName()
+                );
             }
-        }
 
-        // 🔥 THUMBNAIL
-        if ($r->hasFile('thumbnail')) {
-
-            $file = $r->file('thumbnail');
-
-            $multipart[] = [
-                'name'     => 'thumbnail',
-                'contents' => fopen($file->getRealPath(), 'r'),
-                'filename' => $file->getClientOriginalName(),
-                'headers'  => [
-                    'Content-Type' => $file->getMimeType()
-                ]
-            ];
-        }
-
-        $response = Http::withToken(session('accessToken'))
-            ->send('POST', env('API_END_POINT') . '/parenting/quiz', [
-                'multipart' => $multipart
+            // kirim request ke API parenting/quiz
+            $response = $http->post(env('API_END_POINT') . '/parenting/quiz', [
+                'title' => (string) $r->title,
+                'videoUrl' => (string) $r->videoUrl,
+                'startAt' => (string) $r->startAt,
+                'endAt' => (string) $r->endAt,
+                'durationMin' => (int) $r->durationMin
             ]);
 
-        if ($response->failed()) {
+            // jika gagal
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal membuat quiz'
+                ], $response->status());
+            }
 
-            Log::error('Quiz API Error', [
-                'status' => $response->status(),
-                'body'   => $response->body()
+            // jika berhasil
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message'] ?? 'Quiz berhasil dibuat'
             ]);
+        } catch (\Exception $e) {
 
             return response()->json([
-                'message' => $response->json()['message'] ?? 'Gagal menyimpan kuis'
-            ], $response->status());
+                'debug' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Kuis berhasil dibuat'
-        ]);
-
-    } catch (\Exception $e) {
-
-        Log::error('Quiz System Error: ' . $e->getMessage());
-
-        return response()->json([
-            'message' => 'Internal Server Error'
-        ], 500);
     }
-}
+
+    public function storeQuestion(Request $r, $quizId)
+    {
+        try {
+
+            $payload = $r->all();
+
+            $response = Http::withToken(session('accessToken'))
+                ->post(env('API_END_POINT') . "/parenting/quiz/$quizId/question", $payload);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'message' => $response->json()['message'] ?? 'Gagal menyimpan pertanyaan'
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pertanyaan berhasil ditambahkan'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getQuestions($quizId)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->get(env('API_END_POINT') . "/parenting/quiz/$quizId");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'message' => 'Gagal mengambil pertanyaan'
+                ], $response->status());
+            }
+
+            return response()->json(
+                $response->json()
+            );
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+
+            $response = Http::withToken(session('accessToken'))
+                ->delete(env('API_END_POINT') . "/parenting/quiz/$id");
+
+            if ($response->failed()) {
+                return response()->json([
+                    'server' => $response->json()['message'] ?? 'Gagal menghapus Kuis'
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $response->json()['message'] ?? 'Kuis berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'debug' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

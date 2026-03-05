@@ -4,13 +4,43 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
-        .podcast-card {
-            transition: all .2s ease;
+        .article-card {
+            transition: all 0.25s ease;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        .podcast-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+        .article-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-card img {
+            transition: transform 0.35s ease;
+        }
+
+        .article-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .article-card .position-relative::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            transition: 0.3s;
+        }
+
+        .article-card:hover .position-relative::after {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .article-card button {
+            transition: all .2s;
+        }
+
+        .article-card button:hover {
+            transform: scale(1.03);
         }
     </style>
 @endsection
@@ -50,22 +80,27 @@
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuizModal">
-                    <i class="fa fa-plus"></i> Tambah Artikel
+                    <i class="fa fa-plus"></i> Tambah Kuis
                 </button>
             </div>
         </div>
 
         <div class="row g-4">
 
-            @forelse ($articles as $article)
+            @forelse ($kuises as $kuis)
+                @php
+                    $questionCount = count($kuis['questions'] ?? []);
+                @endphp
+
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0 article-card" style="cursor:pointer"
-                        onclick="editArtikel('{{ $article['id'] }}')">
+                        onclick="editArtikel('{{ $kuis['id'] }}')">
 
-                        {{-- Thumbnail --}}
                         <div class="position-relative">
-                            @if (!empty($article['thumbnail']))
-                                <img src="{{ $article['thumbnail'] }}" class="card-img-top"
+
+                            {{-- THUMBNAIL --}}
+                            @if (!empty($kuis['thumbnail']))
+                                <img src="{{ $kuis['thumbnail'] }}" class="card-img-top"
                                     style="height:200px;object-fit:cover;">
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center"
@@ -74,51 +109,72 @@
                                 </div>
                             @endif
 
-                            {{-- Badge youtube --}}
-                            @if ($article['videoUrl'])
+                            {{-- VIDEO BADGE --}}
+                            @if (!empty($kuis['videoUrl']))
                                 <span class="badge bg-danger position-absolute top-0 end-0 m-2">
-                                    YouTube
+                                    Video
                                 </span>
                             @endif
+
                         </div>
 
                         <div class="card-body d-flex flex-column">
 
-                            {{-- Title --}}
-                            <h5 class="card-title mb-1">
-                                {{ $article['title'] }}
+                            {{-- TITLE --}}
+                            <h5 class="card-title mb-2">
+                                {{ $kuis['title'] }}
                             </h5>
 
-                            {{-- Description --}}
-                            <p class="text-muted small mb-2">
-                                {{ \Illuminate\Support\Str::words(strip_tags($article['content'] ?? '-'), 25) }}
-                            </p>
-
-                            {{-- Meta info --}}
+                            {{-- DURASI --}}
                             <div class="small text-muted mb-2">
-                                ⭐ Point: <strong>{{ $article['score'] ?? '-' }}</strong><br>
+                                ⏱ Durasi: <strong>{{ $kuis['durationMin'] }} menit</strong>
                             </div>
 
-                            {{-- Moderator --}}
+                            {{-- TOTAL POINT --}}
                             <div class="small text-muted mb-2">
-                                <i class="fa fa-microphone"></i>
-                                {{ $article['moderator'] ?? '-' }}
+                                ⭐ Total Point:
+                                <strong>{{ $kuis['scoreTotal'] }}</strong>
                             </div>
 
-                            {{-- Created --}}
+                            {{-- PERIODE --}}
                             <div class="small text-muted mb-3">
-                                Dibuat {{ date('d M Y', strtotime($article['createdAt'])) }}
+                                📅
+                                {{ \Carbon\Carbon::parse($kuis['startAt'])->format('d M Y H:i') }}
+                                -
+                                {{ \Carbon\Carbon::parse($kuis['endAt'])->format('d M Y H:i') }}
+                            </div>
+
+                            {{-- QUESTION STATUS --}}
+                            <div class="mb-3">
+
+                                @if ($questionCount == 0)
+                                    <div class="alert alert-warning p-2 small text-center">
+                                        Belum ada pertanyaan
+                                    </div>
+                                @else
+                                    <div class="alert alert-success p-2 small text-center">
+                                        {{ $questionCount }} Pertanyaan tersedia
+                                    </div>
+                                @endif
+
                             </div>
 
                             <div class="mt-auto"></div>
 
-                            {{-- Buttons --}}
-                            <button class="btn btn-outline-primary w-100" onclick='event.stopPropagation();'>
-                                Sematkan Kuis
-                            </button>
+                            {{-- BUTTONS --}}
+                            @if ($questionCount == 0)
+                                <button class="btn btn-primary w-100" onclick="openQuestionModal('{{ $kuis['quizId'] }}')">
+                                    Buat Pertanyaan
+                                </button>
+                            @else
+                                <button class="btn btn-outline-primary w-100"
+                                    onclick="event.stopPropagation(); lihatPertanyaan('{{ $kuis['id'] }}')">
+                                    Lihat Pertanyaan
+                                </button>
+                            @endif
 
                             <button class="btn btn-outline-danger w-100 mt-2"
-                                onclick="deletePromo('{{ $article['id'] }}', this)">
+                                onclick="event.stopPropagation(); deleteKuis('{{ $kuis['id'] }}', this)">
                                 Hapus Kuis
                             </button>
 
@@ -129,7 +185,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info text-center">
-                        Belum ada Artikel
+                        Belum ada Kuis
                     </div>
                 </div>
             @endforelse
@@ -155,24 +211,32 @@
                         <!-- TITLE -->
                         <div class="mb-3">
                             <label class="form-label">Judul Kuis</label>
-                            <input type="text" class="form-control" name="title" maxlength="200" required>
+                            <input type="text" class="form-control" name="title" maxlength="200" required
+                                placeholder="Masukkan judul kuis">
                         </div>
 
                         <!-- VIDEO -->
                         <div class="mb-3">
                             <label class="form-label">Video URL (Optional)</label>
-                            <input type="text" class="form-control" name="videoUrl">
+                            <input type="text" class="form-control" name="videoUrl" id="videoUrl"
+                                placeholder="http://youtube.com/video">
+
+                            <div class="mt-2 text-center">
+                                <img id="youtubePreview" src="https://placehold.co/600x340?text=YouTube+Thumbnail"
+                                    class="img-fluid rounded border" style="max-height:200px; object-fit:cover;">
+                            </div>
                         </div>
+
 
                         <!-- START & END -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label>Start At</label>
+                                <label>Waktu Mulai</label>
                                 <input type="datetime-local" class="form-control" name="startAt" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label>End At</label>
+                                <label>Waktu Selesai</label>
                                 <input type="datetime-local" class="form-control" name="endAt" required>
                             </div>
                         </div>
@@ -180,26 +244,21 @@
                         <!-- DURATION -->
                         <div class="mb-3">
                             <label>Durasi (Menit)</label>
-                            <input type="number" class="form-control" name="durationMin" min="10" required>
+                            <input type="number" class="form-control" name="durationMin" min="10" required
+                                placeholder="Durasi pengerjaan kuis">
                         </div>
 
                         <!-- THUMBNAIL -->
                         <div class="mb-3">
                             <label>Thumbnail</label>
                             <input type="file" class="form-control" name="thumbnail"
-                                accept="image/png,image/jpeg,image/jpg">
+                                accept="image/png,image/jpeg,image/jpg" id="thumbnailInput">
+
+                            <div class="mt-2 text-center">
+                                <img id="thumbnailPreview" src="https://placehold.co/600x340?text=Thumbnail+Preview"
+                                    class="img-fluid rounded border" style="max-height:200px; object-fit:cover;">
+                            </div>
                         </div>
-
-                        <hr>
-
-                        <!-- QUESTIONS -->
-                        <h6>Daftar Soal</h6>
-
-                        <div id="questionsContainer"></div>
-
-                        <button type="button" class="btn btn-sm btn-primary mt-2" onclick="addQuestion()">
-                            + Tambah Soal
-                        </button>
 
                     </div>
 
@@ -215,40 +274,48 @@
         </div>
     </div>
 
-    <div class="modal fade" id="previewArticleModal">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal fade" id="questionModal">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 id="previewTitle"></h5>
+                    <h5>Atur Pertanyaan Quiz</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
 
-                    <img id="previewThumbnail" class="img-fluid rounded mb-3"
-                        style="max-height:250px;object-fit:cover;width:100%;">
+                    <input type="hidden" id="quizId">
 
-                    <!-- meta -->
-                    <div class="mb-2 text-muted small">
-                        🎙 Moderator: <span id="previewModerator"></span> |
-                        🎯 Point: <span id="previewScore"></span>
-                    </div>
+                    <div id="questionsContainer"></div>
 
-                    <!-- content -->
-                    <div id="previewContent" style="line-height:1.6;font-size:15px;"></div>
+                    <button class="btn btn-sm btn-primary mt-2" onclick="addQuestion()">
+                        + Tambah Pertanyaan
+                    </button>
 
-                    <!-- video -->
-                    <div class="mt-3 text-center">
-                        <a id="previewVideo" class="btn btn-danger btn-sm" target="_blank">
-                            ▶ Tonton Video
-                        </a>
-                    </div>
+                </div>
 
-                    <div class="mt-3 text-muted small text-end">
-                        <span id="previewDate"></span>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" onclick="submitQuestions()">
+                        Simpan Pertanyaan
+                    </button>
+                </div>
 
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="lihatQuestionModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5>Daftar Pertanyaan</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="listQuestions"></div>
                 </div>
 
             </div>
@@ -260,7 +327,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Artikel</h5>
+                    <h5 class="modal-title">Edit Kuis</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -332,151 +399,370 @@
 
 @section('own_script')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     <script>
-        let questionIndex = 0;
+        let qIndex = 0;
+
+        function openQuestionModal(id) {
+            $('#quizId').val(id)
+            $('#questionsContainer').html('')
+            qIndex = 0
+
+            $('#questionModal').modal('show')
+        }
 
         function addQuestion() {
 
-            const qIndex = questionIndex++;
+            let qId = Date.now()
 
-            const html = `
-        <div class="card mt-3 question-block">
-            <div class="card-body">
+            let html = `
+            <div class="card mt-3 question-block">
 
-                <div class="d-flex justify-content-between">
-                    <h6>Soal</h6>
+                <div class="card-body">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Pertanyaan</strong>
                     <button type="button" class="btn btn-sm btn-danger"
-                        onclick="this.closest('.question-block').remove()">
+                        onclick="$(this).closest('.question-block').remove()">
                         Hapus
                     </button>
                 </div>
 
-                <input type="text"
-                    class="form-control mb-2 question-text"
-                    name="questions[${qIndex}][text]"
-                    placeholder="Tulis soal..."
-                    required>
+                <input class="form-control mb-2 question-text"
+                    placeholder="Tulis pertanyaan">
 
                 <input type="number"
                     class="form-control mb-3 question-score"
-                    name="questions[${qIndex}][score]"
-                    placeholder="Score"
-                    min="0"
-                    required>
+                    placeholder="Score">
 
-                <div id="options-${qIndex}"></div>
+                <div class="options" data-radio="correct${qId}"></div>
 
-                <button type="button"
-                    class="btn btn-sm btn-info"
-                    onclick="addOption(${qIndex})">
+                <button type="button" class="btn btn-sm btn-info"
+                    onclick="addOption(this)">
                     + Tambah Jawaban
                 </button>
 
+                </div>
             </div>
-        </div>
-    `;
+            `
 
-            document.getElementById('questionsContainer')
-                .insertAdjacentHTML('beforeend', html);
+            $('#questionsContainer').append(html)
         }
 
-        function addOption(qIndex) {
+        function addOption(btn) {
 
-            const container = document.getElementById(`options-${qIndex}`);
-            const optionCount = container.children.length;
+            let container = $(btn).closest('.card-body').find('.options')
+            let radioName = container.data('radio')
 
-            const html = `
+            let html = `
                 <div class="input-group mb-2 option-block">
-                    <input type="text"
-                        class="form-control"
-                        name="questions[${qIndex}][options][${optionCount}][text]"
-                        placeholder="Teks jawaban..."
-                        required>
+
+                    <input class="form-control option-text"
+                        placeholder="Jawaban">
 
                     <div class="input-group-text">
-                        <input type="radio"
-                            name="correct_${qIndex}"
-                            onclick="setCorrect(${qIndex}, ${optionCount})">
+                        <input type="radio" name="${radioName}" class="correct-radio">
                     </div>
 
-                    <button type="button"
-                        class="btn btn-danger"
-                        onclick="this.parentElement.remove()">
+                    <button type="button" class="btn btn-danger"
+                        onclick="$(this).parent().remove()">
                         X
                     </button>
 
-                    <input type="hidden"
-                        name="questions[${qIndex}][options][${optionCount}][isCorrect]"
-                        value="false">
                 </div>
-                `;
+                `
 
-            container.insertAdjacentHTML('beforeend', html);
+            container.append(html)
         }
 
-        function setCorrect(qIndex, optionIndex) {
+        function collectQuestions() {
 
-            const hiddenInputs =
-                document.querySelectorAll(`#options-${qIndex} input[type=hidden]`);
+            let questions = []
 
-            hiddenInputs.forEach((input, index) => {
-                input.value = index === optionIndex ? "true" : "false";
-            });
-        }
-    </script>
+            $('#questionsContainer .question-block').each(function() {
 
-    <script>
-        $('#addQuizForm').on('submit', function(e) {
-            e.preventDefault();
+                let text = $(this).find('.question-text').val()?.trim()
+                let score = parseInt($(this).find('.question-score').val())
 
-            let btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Menyimpan...');
-
-            let form = document.getElementById('addQuizForm');
-            let fd = new FormData(form);
-
-            // 🔥 KONVERSI datetime-local KE ISO 8601
-            let startAt = new Date(fd.get('startAt')).toISOString();
-            let endAt = new Date(fd.get('endAt')).toISOString();
-
-            fd.set('startAt', startAt);
-            fd.set('endAt', endAt);
-
-            // 🔥 BANGUN ULANG QUESTIONS MENJADI JSON
-            let questions = [];
-
-            $('.question-block').each(function() {
-
-                let text = $(this).find('.question-text').val();
-                let scoreVal = $(this).find('.question-score').val();
-
-                let score = parseInt(scoreVal);
-                if (isNaN(score)) score = 0;
-
-                let options = [];
+                let options = []
 
                 $(this).find('.option-block').each(function() {
 
-                    let optText = $(this).find('.option-text').val();
-                    let isCorrect = $(this).find('.option-is-correct').val() === "true";
+                    let optionText = $(this).find('.option-text').val()?.trim()
+                    let isCorrect = $(this).find('.correct-radio').is(':checked')
 
-                    options.push({
-                        text: optText,
-                        isCorrect: isCorrect
-                    });
+                    if (optionText) {
+                        options.push({
+                            text: optionText,
+                            isCorrect: isCorrect
+                        })
+                    }
 
-                });
+                })
 
-                questions.push({
-                    text: text,
-                    score: score,
-                    options: options
-                });
+                if (text && options.length) {
+                    questions.push({
+                        text: text,
+                        score: score || 0,
+                        options: options
+                    })
+                }
 
-            });
+            })
 
-            fd.delete('questions');
-            fd.append('questions', JSON.stringify(questions));
+            return questions
+        }
+
+        function submitQuestions() {
+
+            let quizId = $('#quizId').val()
+            let questions = collectQuestions()
+
+            if (!questions.length) {
+                Swal.fire('Error', 'Belum ada pertanyaan', 'error')
+                return
+            }
+
+            let successCount = 0
+            let failCount = 0
+            let total = questions.length
+
+            Swal.fire({
+                title: 'Menyimpan pertanyaan...',
+                text: 'Mohon tunggu',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            })
+
+            questions.forEach(q => {
+
+                $.ajax({
+                    url: `/kuis-parenting/${quizId}/soal`,
+                    method: "POST",
+                    contentType: "application/json",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: JSON.stringify({
+                        text: q.text,
+                        score: q.score,
+                        options: q.options
+                    }),
+
+                    success: function(res) {
+
+                        $("#questionModal").modal('hide');
+                        successCount++
+                        checkFinish()
+                        setTimeout(() => {
+                            location.reload()
+                        }, 1500);
+                    },
+
+                    error: function(xhr) {
+
+                        console.log("ERROR:", xhr.responseJSON)
+                        failCount++
+                        checkFinish()
+
+                    }
+                })
+
+            })
+
+
+            function checkFinish() {
+
+                if (successCount + failCount === total) {
+
+                    Swal.fire({
+                        icon: failCount ? 'warning' : 'success',
+                        title: 'Selesai'
+                    })
+
+                }
+
+            }
+
+        }
+
+        function lihatPertanyaan(quizId) {
+
+            $('#listQuestions').html(`
+        <div class="text-center p-4">
+            <div class="spinner-border"></div>
+        </div>
+    `)
+
+            $('#lihatQuestionModal').modal('show')
+
+            $.ajax({
+
+                url: `/kuis-parenting/${quizId}/get-soal`,
+                method: "GET",
+
+                success: function(res) {
+
+                    let html = ''
+                    let questions = res.data.questions ?? []
+
+                    if (questions.length === 0) {
+
+                        $('#listQuestions').html(`
+                    <div class="text-center text-muted">
+                        Belum ada pertanyaan
+                    </div>
+                `)
+
+                        return
+                    }
+
+                    questions.forEach((q, index) => {
+
+                        html += `
+                <div class="card mb-3">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>Pertanyaan ${index + 1}</strong>
+                            <span class="badge bg-primary">
+                                Score ${q.score}
+                            </span>
+                        </div>
+
+                        <p>${q.text}</p>
+
+                        <ul class="list-group">
+                `
+
+                        q.options.forEach(opt => {
+
+                            html += `
+                        <li class="list-group-item">
+                            ${opt.text}
+                        </li>
+                    `
+
+                        })
+
+                        html += `
+                        </ul>
+
+                    </div>
+
+                </div>
+                `
+                    })
+
+                    $('#listQuestions').html(html)
+
+                },
+
+                error: function() {
+
+                    $('#listQuestions').html(`
+                <div class="alert alert-danger">
+                    Gagal mengambil data pertanyaan
+                </div>
+            `)
+
+                }
+
+            })
+
+        }
+
+        function getYoutubeID(url) {
+
+            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            let match = url.match(regExp);
+
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        $('#videoUrl').on('keyup change', function() {
+
+            let url = $(this).val();
+            let videoId = getYoutubeID(url);
+
+            if (videoId) {
+
+                let thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+                $('#youtubePreview').attr('src', thumbnail);
+
+            } else {
+
+                $('#youtubePreview').attr(
+                    'src',
+                    'https://placehold.co/600x340?text=YouTube+Thumbnail'
+                );
+
+            }
+
+        });
+
+        $('#thumbnailInput').on('change', function(e) {
+
+            let file = e.target.files[0];
+
+            if (!file) return;
+
+            let reader = new FileReader();
+
+            reader.onload = function(event) {
+
+                $('#thumbnailPreview').attr('src', event.target.result);
+
+            }
+
+            reader.readAsDataURL(file);
+
+        });
+
+        $('#thumbnailInput').on('change', function() {
+            $('#youtubePreview').hide();
+        });
+
+        function toISOWithOffset(dateStr) {
+
+            const d = new Date(dateStr);
+            const tzOffset = -d.getTimezoneOffset();
+            const diff = tzOffset >= 0 ? "+" : "-";
+
+            const pad = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
+
+            return d.getFullYear() +
+                "-" + pad(d.getMonth() + 1) +
+                "-" + pad(d.getDate()) +
+                "T" + pad(d.getHours()) +
+                ":" + pad(d.getMinutes()) +
+                ":" + pad(d.getSeconds()) +
+                diff + pad(tzOffset / 60) +
+                ":" + pad(tzOffset % 60);
+        }
+
+        $('#addQuizForm').on('submit', function(e) {
+
+            e.preventDefault();
+
+            let fd = new FormData();
+
+            fd.append('title', $('input[name=title]').val());
+            fd.append('videoUrl', $('input[name=videoUrl]').val());
+            fd.append('startAt', toISOWithOffset($('input[name=startAt]').val()));
+            fd.append('endAt', toISOWithOffset($('input[name=endAt]').val()));
+            fd.append('durationMin', $('input[name=durationMin]').val());
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+            let thumb = $('input[name=thumbnail]')[0].files[0];
+
+            if (thumb) {
+                fd.append('thumbnail', thumb);
+            }
 
             $.ajax({
                 url: '/kuis-parenting',
@@ -485,19 +771,24 @@
                 processData: false,
                 contentType: false,
                 success: function(res) {
-                    Swal.fire('Berhasil!', res.message, 'success')
-                        .then(() => location.reload());
+                    $("#addQuizModal").modal('hide');
+                    Swal.fire(
+                        'Berhasil',
+                        res.message,
+                        'success'
+                    ).then(() => location.reload());
+
                 },
                 error: function(xhr) {
-                    btn.prop('disabled', false).text('Simpan Kuis');
 
                     Swal.fire(
                         'Error',
-                        xhr.responseJSON?.message || 'Gagal menyimpan kuis',
+                        xhr.responseJSON?.message || 'Gagal menyimpan',
                         'error'
                     );
                 }
             });
+
         });
     </script>
 
@@ -531,79 +822,11 @@
             $('#previewArticleModal').modal('show');
         }
 
-        function editArtikel(id) {
-            $.get(`/artikel-parenting/${id}`, function(res) {
-
-                let a = res.data;
-
-                $('#edit_id').val(a.id);
-                $('#edit_title').val(a.title);
-                $('#edit_moderator').val(a.moderator);
-                $('#edit_videoUrl').val(a.videoUrl);
-                $('#edit_score').val(a.score);
-                $('#edit_isActive').prop('checked', a.isActive ?? true);
-
-                if (a.thumbnail) {
-                    $('#edit_thumbnail_preview')
-                        .attr('src', a.thumbnail)
-                        .show();
-                }
-
-                // rich text content
-                editQuill.root.innerHTML = a.content || '';
-
-                $('#editArtikelModal').modal('show');
-            });
-        }
-
-        $('#editArtikelForm').on('submit', function(e) {
-            e.preventDefault();
-
-            let btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Updating...');
-
-            $.ajax({
-                url: `/artikel-parenting/${$('#edit_id').val()}`,
-                method: 'PATCH',
-                data: {
-                    title: $('#edit_title').val(),
-                    content: editQuill.root.innerHTML,
-                    moderator: $('#edit_moderator').val(),
-                    videoUrl: $('#edit_videoUrl').val(),
-                    score: $('#edit_score').val(),
-                    isActive: $('#edit_isActive').is(':checked'),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-
-                success: function(res) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: res.message || 'Artikel berhasil diupdate',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-
-                    setTimeout(() => location.reload(), 2000);
-                },
-
-                error: function(xhr) {
-                    btn.prop('disabled', false).text('Update Artikel');
-
-                    $('#editAlert').html(`
-                <div class="alert alert-danger">
-                    ${xhr.responseJSON?.server || 'Gagal update artikel'}
-                </div>
-            `);
-                }
-            });
-        });
-
-        function deletePromo(id, btn) {
+        function deleteKuis(id, btn) {
             event.stopPropagation();
 
             Swal.fire({
-                title: 'Yakin ingin menghapus Artikel?',
+                title: 'Yakin ingin menghapus Kuis?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
@@ -614,7 +837,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: `/artikel-parenting/${id}`,
+                        url: `/kuis-parenting/${id}`,
                         type: 'DELETE',
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')
@@ -626,7 +849,7 @@
                             $(btn).closest('.col-md-4').remove();
                         },
                         error: function(xhr) {
-                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Artikel',
+                            Swal.fire('Gagal!', xhr.responseJSON?.server || 'Gagal menghapus Kuis',
                                 'error');
                         }
                     });

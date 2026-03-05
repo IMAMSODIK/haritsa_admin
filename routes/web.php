@@ -15,6 +15,7 @@ use App\Http\Controllers\PromoFlashController;
 use App\Http\Controllers\PromoVideoController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SurveyLayananController;
+use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoParentingController;
 use App\Http\Controllers\VoucherController;
@@ -38,6 +39,8 @@ Route::middleware('api.auth')->group(function () {
     Route::patch('/users/{id}', [UserController::class, 'update']);
     Route::put('/users/{id}/{val}', [UserController::class, 'activate']);
     Route::get('/get-users', [UserController::class, 'getUsers']);
+
+    Route::get('/transaksi', [TransaksiController::class, 'index']);
 
     Route::get('/voucher', [VoucherController::class, 'index']);
     Route::post('/vouchers/generate', [VoucherController::class, 'generate']);
@@ -126,8 +129,8 @@ Route::middleware('api.auth')->group(function () {
 
     Route::get('/kuis-parenting', [KuisController::class, 'index'])->name('kuis.index');
     Route::post('/kuis-parenting', [KuisController::class, 'store'])->name('kuis.store');
-    Route::patch('/kuis-parenting/{id}', [KuisController::class, 'update']);
-    Route::get('/kuis-parenting/{id}', [KuisController::class, 'show']);
+    Route::post('/kuis-parenting/{id}/soal', [KuisController::class, 'storeQuestion'])->name('kuis.store.soal');
+    Route::get('/kuis-parenting/{quizId}/get-soal', [KuisController::class, 'getQuestions']);
     Route::delete('/kuis-parenting/{id}', [KuisController::class, 'destroy']);
 
     Route::get('/profile', [UserController::class, 'profile']);
