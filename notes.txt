@@ -136,3 +136,37 @@ unutk penawaran produk ada pilihan untuk all toko
 
 
 ru.a402d.rawbtprinter
+
+
+
+
+
+
+Toggle User Status => internal server error (done)
+produk => bisa multi store dan all store, versi dihapus (design done)
+quiz => masih relasi ke artikel
+survey => beberapa field baru
+
+transaction
+voucher 
+
+
+
+
+
+
+error
+-----------
+add user
+hapus kategori produk (done)
+store penawaran produk (done)
+update foto gagal (done)
+store promo customer (done)
+update promo customer (done)
+store podcast (done)
+store artikel parenting (done)
+store video parenting (done)
+update video parenting (done)
+
+store kuis parenting (done)
+saat hapus kuis parenting, belum reload (done)

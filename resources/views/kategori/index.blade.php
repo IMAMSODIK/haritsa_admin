@@ -69,7 +69,7 @@
                                             <button class="btn btn-info btn-sm edit" onclick="editStore('{{ $kategorie['id'] }}')">
                                                 Edit
                                             </button>
-                                            <button class="btn btn-danger btn-sm delete" id="deleteStoreBtn" data-id="{{ $kategorie['id'] }}">
+                                            <button class="btn btn-danger btn-sm delete" data-id="{{ $kategorie['id'] }}">
                                                 Hapus
                                             </button>
                                         </div>
@@ -285,7 +285,7 @@
     </script>
 
     <script>
-        $('#deleteStoreBtn').on('click', function() {
+        $(document).on('click', '.delete', function() {
 
             let id = $(this).data('id');
 
