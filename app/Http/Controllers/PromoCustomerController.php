@@ -59,7 +59,6 @@ class PromoCustomerController extends Controller
             ]);
 
             if ($response->failed()) {
-                dd($response);
                 return response()->json([
                     'server' => $response->json()['message'] ?? 'Gagal simpan promo'
                 ], $response->status());
