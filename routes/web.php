@@ -14,6 +14,7 @@ use App\Http\Controllers\PromoCustomerController;
 use App\Http\Controllers\PromoFlashController;
 use App\Http\Controllers\PromoVideoController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SubmitVoucherController;
 use App\Http\Controllers\SurveyLayananController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
@@ -57,12 +58,16 @@ Route::middleware('api.auth')->group(function () {
 
     Route::get('/brand-produk', [BrandController::class, 'index'])->name('brand.index');
     Route::post('/brand-produk', [BrandController::class, 'store'])->name('brand.store');
+    Route::get('/brand-produk/template', [BrandController::class, 'downloadTemplate'])->name('brand.template');
+    Route::post('/brand-produk/import', [BrandController::class, 'import']);
     Route::patch('/brand-produk/{id}', [BrandController::class, 'update']);
     Route::get('/brand-produk/{id}', [BrandController::class, 'show']);
     Route::delete('/brand-produk/{id}', [BrandController::class, 'destroy']);
 
     Route::get('/kategori-produk', [KategoriController::class, 'index'])->name('kategori.index');
     Route::post('/kategori-produk', [KategoriController::class, 'store'])->name('kategori.store');
+    Route::get('/kategori-produk/template', [KategoriController::class, 'downloadTemplate'])->name('kategori.template');
+    Route::post('/kategori-produk/import', [KategoriController::class, 'import']);
     Route::patch('/kategori-produk/{id}', [KategoriController::class, 'update']);
     Route::get('/kategori-produk/{id}', [KategoriController::class, 'show']);
     Route::delete('/kategori-produk/{id}', [KategoriController::class, 'destroy']);
@@ -134,6 +139,9 @@ Route::middleware('api.auth')->group(function () {
     Route::delete('/kuis-parenting/{id}', [KuisController::class, 'destroy']);
 
     Route::get('/profile', [UserController::class, 'profile']);
+
+    Route::get('/submit-voucher', [SubmitVoucherController::class, 'index'])->name('submit.voucher.index');
+    Route::post('/submit-voucher', [SubmitVoucherController::class, 'store'])->name('submit.voucher.store');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

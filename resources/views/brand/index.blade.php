@@ -37,6 +37,10 @@
 
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
+                <button class="btn btn-success" style="margin-right: 5px" data-bs-toggle="modal"
+                    data-bs-target="#modalImport">
+                    <i class="fa fa-upload"></i> Import Voucher
+                </button>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStoreModal">
                     <i class="fa fa-plus"></i> Tambah Brand
                 </button>
@@ -115,6 +119,50 @@
 
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalImport">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Brand Excel</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="importBrandForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+
+                        <!-- DOWNLOAD TEMPLATE -->
+                        <div class="mb-3 text-center">
+                            <a href="{{ route('brand.template') }}" class="btn btn-outline-primary w-100">
+                                <i class="fa fa-download"></i> Download Template Excel
+                            </a>
+                        </div>
+
+                        <hr>
+
+                        <!-- FILE UPLOAD -->
+                        <div class="mb-3">
+                            <label>Upload File Excel</label>
+                            <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                            <small class="text-muted">
+                                Format: .xlsx / .xls
+                            </small>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success w-100" id="btnImportVoucher">
+                            Import Brand
+                        </button>
+                    </div>
+                </form>
+
+            </div>
         </div>
     </div>
 
@@ -334,6 +382,38 @@
 
             });
 
+        });
+    </script>
+
+    <script>
+        $('#importBrandForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let btn = $('#btnImportVoucher');
+            btn.prop('disabled', true).text('Mengimport...');
+
+            let fd = new FormData(this);
+
+            $.ajax({
+                url: '/brand-produk/import',
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    Swal.fire('Berhasil!', res.message, 'success')
+                        .then(() => location.reload());
+                },
+                error: function(xhr) {
+                    btn.prop('disabled', false).text('Import Brand');
+
+                    Swal.fire(
+                        'Error',
+                        xhr.responseJSON?.message || 'Gagal import Brand',
+                        'error'
+                    );
+                }
+            });
         });
     </script>
 @endsection

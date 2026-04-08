@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\ApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class KategoriController extends Controller
 {
@@ -25,6 +27,98 @@ class KategoriController extends Controller
         } catch (\Exception $e) {
 
             return back()->with('error', 'Server Kategori tidak bisa dihubungi');
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $fileName = 'template_import_kategori.xlsx';
+        $filePath = storage_path($fileName);
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header columns
+        $sheet->setCellValue('A1', 'Nama Kategori');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($filePath);
+
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function import(Request $r, ApiService $api)
+    {
+        try {
+
+            if (!$r->hasFile('file')) {
+                return response()->json([
+                    'message' => 'File wajib diupload'
+                ], 422);
+            }
+
+            $file = $r->file('file');
+
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            // hapus header
+            unset($rows[0]);
+
+            $success = 0;
+            $failed = 0;
+            $errors = [];
+
+            foreach ($rows as $index => $row) {
+
+                $name = trim($row[0] ?? null);
+
+                // skip kosong
+                if (!$name) {
+                    continue;
+                }
+
+                try {
+
+                    $payload = [
+                        "name" => $name
+                    ];
+
+                    $api->request('post', '/categories', $payload);
+
+                    $success++;
+                } catch (\Exception $e) {
+
+                    $failed++;
+
+                    $errors[] = [
+                        'row' => $index + 1,
+                        'name' => $name,
+                        'error' => $e->getMessage()
+                    ];
+
+                    Log::error('Import Kategori Row Error', [
+                        'row' => $index + 1,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Import selesai. Berhasil: $success, Gagal: $failed",
+                'total_success' => $success,
+                'total_failed' => $failed,
+                'errors' => $errors
+            ]);
+        } catch (\Exception $e) {
+
+            Log::error('Import Kategori System Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Internal Server Error'
+            ], 500);
         }
     }
 
