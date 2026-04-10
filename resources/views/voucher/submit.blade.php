@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -65,7 +66,7 @@
             font-weight: 500;
             letter-spacing: 0.5px;
             margin-bottom: 1rem;
-            border: 1px solid rgba(255,255,255,0.25);
+            border: 1px solid rgba(255, 255, 255, 0.25);
         }
 
         .badge-icon span {
@@ -240,22 +241,28 @@
             body {
                 padding: 1rem;
             }
+
             .card-header {
                 padding: 1.5rem 1rem;
             }
+
             .card-header h1 {
                 font-size: 1.7rem;
             }
+
             .card-body {
                 padding: 1.5rem;
             }
+
             .voucher-input-wrapper {
                 padding-left: 0.8rem;
             }
+
             .submit-btn {
                 padding: 0.85rem;
                 font-size: 1rem;
             }
+
             .badge-icon {
                 font-size: 0.7rem;
                 padding: 0.4rem 1rem;
@@ -266,7 +273,7 @@
             display: inline-block;
             width: 18px;
             height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 0.6s linear infinite;
@@ -274,7 +281,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         button:disabled {
@@ -291,7 +300,69 @@
             padding: 0 1rem 1rem;
         }
     </style>
+
+    <style>
+        .msg-box {
+            display: none;
+            margin-top: 15px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 500;
+            border: 1px solid transparent;
+            animation: fadeIn .2s ease-in-out;
+        }
+
+        .msg-box.success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border-color: #a5d6a7;
+        }
+
+        .msg-box.error {
+            background: #ffebee;
+            color: #b71c1c;
+            border-color: #ef9a9a;
+        }
+
+        .msg-box.info {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border-color: #90caf9;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            animation: spin .6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div class="voucher-card">
         <div class="card-header">
@@ -306,14 +377,22 @@
                 <label for="voucherCode">Kode Voucher</label>
                 <div class="voucher-input-wrapper">
                     <div class="prefix-icon">🏷️</div>
-                    <input type="text" id="voucherCode" name="voucherCode" placeholder="contoh: VOUCHER25" autocomplete="off" spellcheck="false">
+                    <input type="text" id="voucherCode" name="voucherCode" placeholder="contoh: VOUCHER25"
+                        autocomplete="off" spellcheck="false">
                 </div>
             </div>
             <button class="submit-btn" id="cekBtn">
-                <span>🔓</span> <span id="btnText">Cek Voucher</span>
+                <span>🔍</span> <span id="cekText">Cek Voucher</span>
             </button>
-            <button class="submit-btn" id="submitBtn">
-                <span>🔓</span> <span id="btnText">Proses Voucher</span>
+            <div id="voucherInfo" style="display:none; margin-top:15px; margin-bottom:15px;" class="alert alert-info">
+            </div>
+            <button class="submit-btn" id="submitBtn" style="display: none">
+                <span>🔓</span> <span id="submitText">Proses Voucher</span>
+            </button>
+            <div id="messageBox" class="msg-box" style="margin-bottom: 15px"></div>
+
+            <button class="submit-btn" id="anotherProses" style="display: none">
+                <span>Proses Voucher Lainnya</span>
             </button>
             <footer>
                 * Setiap kode promo hanya dapat digunakan satu kali per transaksi
@@ -321,31 +400,23 @@
         </div>
     </div>
 
-    <script>
-        const validVouchers = new Map([
-            ['WELCOME10', { discount: '10% Diskon', message: 'Selamat! Kode WELCOME10 berhasil digunakan. Diskon 10% otomatis berlaku.' }],
-            ['FREESHIP', { discount: 'Gratis Ongkir', message: 'Hore! Kode FREESHIP valid. Nikmati gratis ongkir tanpa minimum belanja.' }],
-            ['VOUCHER25', { discount: 'Rp 25.000', message: 'Berhasil! Kode VOUCHER25 memberikan potongan Rp25.000.' }],
-            ['SPECIAL50', { discount: '50% off maks Rp50rb', message: 'Istimewa! SPECIAL50 aktif, potongan 50% maksimal Rp50.000.' }],
-            ['MERDEKA', { discount: 'Diskon 17%', message: 'Merdeka! Kode MERDEKA memberikan diskon 17% untuk semua produk.' }],
-            ['FLASH40', { discount: 'Flash sale 40%', message: 'Wow! FLASH40 terverifikasi, diskon 40% hanya hari ini.' }]
-        ]);
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
 
+    <script>
         const voucherInput = document.getElementById('voucherCode');
         const cekBtn = document.getElementById('cekBtn');
-        const btnTextSpan = document.getElementById('btnText');
+        const btnTextSpan = document.getElementById('cekText');
         const messageBox = document.getElementById('messageBox');
 
         function showMessage(type, text) {
-            messageBox.classList.remove('success', 'error', 'info');
-            if (type === 'success') {
-                messageBox.classList.add('success');
-            } else if (type === 'error') {
-                messageBox.classList.add('error');
-            } else {
-                messageBox.classList.add('info');
-            }
-            messageBox.innerHTML = text;
+            const box = $('#messageBox');
+
+            box.removeClass('success error info');
+            box.addClass(type);
+
+            box.html(text);
+            box.fadeIn(150);
         }
 
         function validateVoucher(code) {
@@ -353,7 +424,10 @@
                 setTimeout(() => {
                     const normalizedCode = code.trim().toUpperCase();
                     if (normalizedCode === "") {
-                        reject({ type: 'empty', message: '⚠️ Kode voucher tidak boleh kosong. Masukkan kode terlebih dahulu.' });
+                        reject({
+                            type: 'empty',
+                            message: '⚠️ Kode voucher tidak boleh kosong. Masukkan kode terlebih dahulu.'
+                        });
                         return;
                     }
                     if (validVouchers.has(normalizedCode)) {
@@ -365,7 +439,10 @@
                             message: voucherData.message
                         });
                     } else {
-                        reject({ type: 'invalid', message: `❌ "${code.trim()}" bukan kode voucher yang valid. Coba periksa kembali atau gunakan kode demo.` });
+                        reject({
+                            type: 'invalid',
+                            message: `❌ "${code.trim()}" bukan kode voucher yang valid. Coba periksa kembali atau gunakan kode demo.`
+                        });
                     }
                 }, 200);
             });
@@ -382,13 +459,13 @@
             const originalBtnText = btnTextSpan.innerHTML;
             btnTextSpan.innerHTML = '<span class="loading-spinner"></span> Memeriksa...';
             submitBtn.disabled = true;
-            
+
             try {
                 const result = await validateVoucher(rawCode);
-                
+
                 showMessage('success', `✅ ${result.message} (Kode: ${result.code} | ${result.discount})`);
                 voucherInput.value = result.code;
-                
+
                 const wrapper = document.querySelector('.voucher-input-wrapper');
                 wrapper.style.transition = '0.2s';
                 wrapper.style.borderColor = '#2e7d32';
@@ -445,12 +522,130 @@
         });
 
         voucherInput.addEventListener('focus', () => {
-            if (messageBox.classList.contains('info') && messageBox.innerHTML.includes('Masukkan kode promo')) {
-            }
+            if (messageBox.classList.contains('info') && messageBox.innerHTML.includes('Masukkan kode promo')) {}
         });
 
 
         console.log('Voucher page siap — desain responsif dan modern');
     </script>
+
+    <script>
+        let currentVoucherId = null;
+
+        $('#cekBtn').on('click', function() {
+
+            let kodeVoucher = $('#voucherCode').val();
+
+            if (!kodeVoucher) {
+                showMessage('error', 'Kode voucher tidak boleh kosong');
+                return;
+            }
+
+            // ubah text tombol
+            $('#cekBtn').prop('disabled', true);
+            $('#cekText').html('<span class="spinner"></span> Memeriksa...');
+
+            $.ajax({
+                url: '/submit-voucher/check/' + kodeVoucher,
+                type: 'GET',
+                success: function(res) {
+
+                    if (res.success) {
+
+                        let data = res.data;
+
+                        currentVoucherId = kodeVoucher
+
+                        let expiry = new Date(data.expiryDate)
+                            .toLocaleDateString('id-ID');
+
+                        let statusAktif = data.isActive ? 'Aktif' : 'Tidak Aktif';
+                        let statusApprove = data.isApproved ? 'Sudah Disetujui' : 'Belum Disetujui';
+
+                        let html = `
+                    <div style="text-align:left">
+                        <b>Informasi Voucher</b><br><br>
+                        Kode : <b>${data.code}</b><br>
+                        Nominal : <b>Rp ${data.nominal.toLocaleString('id-ID')}</b><br>
+                        Expired : <b>${expiry}</b><br>
+                        Status Aktif : <b>${statusAktif}</b><br>
+                        Status Approval : <b>${statusApprove}</b><br>
+                        Source : <b>${data.source}</b>
+                    </div>
+                `;
+
+                        $('#voucherInfo').html(html).show();
+                        $('#cekBtn').hide();
+                        $('#submitBtn').show();
+                    }
+                },
+                error: function() {
+                    showMessage('error', 'Gagal memeriksa voucher');
+                },
+                complete: function() {
+                    // kembalikan tombol
+                    $('#cekBtn').prop('disabled', false);
+                    $('#cekText').html('Cek Voucher');
+                }
+            });
+
+        });
+
+        $('#submitBtn').on('click', function() {
+
+            if (!currentVoucherId) {
+                showMessage('error', 'Voucher belum dicek');
+                return;
+            }
+
+            $('#submitBtn').prop('disabled', true);
+            $('#submitText').html('Memproses...');
+
+            $.ajax({
+                url: '/submit-voucher/process/' + currentVoucherId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+
+                    if (res.success) {
+
+                        showMessage('success',
+                            'Voucher berhasil diproses<br>' +
+                            'Kode : ' + currentVoucherId + '<br>'
+                        );
+
+                        $('#submitBtn').hide();
+                        $('#anotherProses').show();
+
+                    } else {
+                        showMessage('error', res.message);
+                    }
+
+                },
+                error: function(xhr) {
+
+                    let msg = 'Gagal memproses voucher';
+
+                    if (xhr.responseJSON?.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+
+                    showMessage('error', msg);
+                },
+                complete: function() {
+                    $('#submitBtn').prop('disabled', false);
+                    $('#submitText').html('Proses Voucher');
+                }
+            });
+
+        });
+
+        $('#anotherProses').on("click", function() {
+            location.reload();
+        });
+    </script>
 </body>
+
 </html>

@@ -164,4 +164,7 @@ Route::middleware(['api.auth','kasir'])->group(function () {
     Route::post('/submit-voucher', [SubmitVoucherController::class, 'store'])
         ->name('submit.voucher.store');
 
+    Route::get('/submit-voucher/check/{id}', [SubmitVoucherController::class, 'check']);
+    Route::post('/submit-voucher/process/{id}', [SubmitVoucherController::class, 'process']);
+
 });
