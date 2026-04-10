@@ -39,6 +39,10 @@ class AuthController extends Controller
                 'role' => $data['data']['role'],
             ]);
 
+            if ($data['data']['role'] == 'CASHIER') {
+                return redirect()->route('submit.voucher.index');
+            }
+
             return redirect()->route('dashboard');
         } catch (\Exception $e) {
 
@@ -49,7 +53,6 @@ class AuthController extends Controller
         }
     }
 
-
     public function logout()
     {
         $refreshToken = session('refreshToken');
@@ -59,7 +62,6 @@ class AuthController extends Controller
                 'refreshToken' => $refreshToken
             ]);
         } catch (\Exception $e) {
-            
         }
 
         session()->flush();

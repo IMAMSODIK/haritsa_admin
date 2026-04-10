@@ -80,6 +80,7 @@
                                         <th class="text-center">Sumber</th>
                                         <th class="text-center">Status</th>
                                         <th class="text-center">Pengguna</th>
+                                        <th class="text-center">Tanggal Kadaluarsa</th>
                                         <th class="text-center">Gambar</th>
                                         {{-- <th class="text-center" style="width: 120px;">Aksi</th> --}}
                                     </tr>
@@ -120,6 +121,9 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
+                                                {{ \Carbon\Carbon::parse($voucher['expiryDate'])->translatedFormat('d F Y') }}
+                                            </td>
+                                            <td class="text-center">
                                                 @if ($voucher['imageUrl'])
                                                     <img src="{{ $voucher['imageUrl'] }}" width="150px" alt="">
                                                 @else
@@ -130,7 +134,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted">
+                                            <td colspan="9" class="text-center text-muted">
                                                 Tidak ada data voucher
                                             </td>
                                         </tr>
@@ -191,7 +195,7 @@
                     <div class="modal-body">
 
                         <div class="mb-3">
-                            <label>Quantity *</label>
+                            <label>Jumlah *</label>
                             <input type="number" name="quantity" class="form-control"
                                 placeholder="Masukkan jumlah voucher yang akan di generate" min="1" max="5000"
                                 required>
@@ -215,7 +219,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label>Image (Optional)</label>
+                            <label>Tanggal Kadaluarsa</label>
+                            <input type="date" name="expiryDate" id="expiryDate" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Gambar (Optional)</label>
                             <input type="file" name="image" id="voucherImage" class="form-control"
                                 accept="image/png,image/jpeg,image/jpg">
 

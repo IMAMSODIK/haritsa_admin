@@ -126,6 +126,13 @@
                     </a>
                 </li>
 
+                <li class="sidebar-list">
+                    <a class="sidebar-link sidebar-title link-nav" href="/voucher/approval">
+                        <i class="fa fa-check-circle text-white"></i>
+                        <span class="">Approval Voucher</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-main-title">
                     <div>
                         <h6 class="">Transaksi</h6>

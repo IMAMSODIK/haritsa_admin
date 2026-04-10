@@ -20,7 +20,55 @@ class VoucherController extends Controller
             ]);
         } catch (\Exception $e) {
 
-            return back()->with('error', 'Data voucher tidak bisa dihubungi');
+            return back()->with('error', 'Data voucher tidak dapat diakses');
+        }
+    }
+
+    public function indexApproval(ApiService $api)
+    {
+        try {
+            $userResult = $api->request('get', '/vouchers');
+
+            return view('voucher.index_approval', [
+                'pageTitle' => 'Approval Voucher',
+                'vouchers' => $userResult
+            ]);
+        } catch (\Exception $e) {
+
+            return back()->with('error', 'Data voucher tidak dapat diakses');
+        }
+    }
+
+    public function approve(Request $request, ApiService $api)
+    {
+        try {
+
+            $payload = $request->all();
+
+            $result = $api->request('put', '/vouchers/approval', $payload);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Voucher berhasil di approve',
+                'data' => $result
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            $response = $e->getResponse();
+            $body = json_decode($response->getBody()->getContents(), true);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Client error',
+                'error' => $body
+            ], 422);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal Laravel error',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -36,7 +84,7 @@ class VoucherController extends Controller
                 [
                     'name' => 'nominal',
                     'contents' => (string) intval($r->nominal)
-                ],
+                ]
             ];
 
             // OPTIONAL
@@ -51,6 +99,13 @@ class VoucherController extends Controller
                 $multipart[] = [
                     'name' => 'codeLength',
                     'contents' => (string) intval($r->codeLength)
+                ];
+            }
+
+            if ($r->filled('expiryDate')) {
+                $multipart[] = [
+                    'name' => 'expiryDate',
+                    'contents' => \Carbon\Carbon::parse($r->expiryDate)->toISOString()
                 ];
             }
 

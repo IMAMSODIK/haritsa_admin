@@ -48,14 +48,14 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        {{-- <div class="row mb-4">
+        <div class="row mb-4">
             <div class="col-12 d-flex justify-content-end">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
                     <i class="fa fa-plus"></i> Tambah Pengguna
                 </button>
             </div>
-        </div> --}}
-
+        </div>
+        
         <div class="row g-4">
             <div class="card">
                 <div class="card-body">

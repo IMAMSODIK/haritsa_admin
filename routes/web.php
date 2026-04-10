@@ -44,6 +44,8 @@ Route::middleware('api.auth')->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index']);
 
     Route::get('/voucher', [VoucherController::class, 'index']);
+    Route::get('/voucher/approval', [VoucherController::class, 'indexApproval'])->name('voucher.approval');
+    Route::put('/voucher/approval', [VoucherController::class, 'approve']);
     Route::post('/vouchers/generate', [VoucherController::class, 'generate']);
     Route::get('/voucher/template', [VoucherController::class, 'downloadTemplate'])->name('voucher.template');
     Route::post('/vouchers/import', [VoucherController::class, 'import']);
@@ -140,8 +142,8 @@ Route::middleware('api.auth')->group(function () {
 
     Route::get('/profile', [UserController::class, 'profile']);
 
-    Route::get('/submit-voucher', [SubmitVoucherController::class, 'index'])->name('submit.voucher.index');
-    Route::post('/submit-voucher', [SubmitVoucherController::class, 'store'])->name('submit.voucher.store');
+    // Route::get('/submit-voucher', [SubmitVoucherController::class, 'index'])->name('submit.voucher.index');
+    // Route::post('/submit-voucher', [SubmitVoucherController::class, 'store'])->name('submit.voucher.store');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
@@ -152,4 +154,14 @@ Route::get('/video-parenting/{id}/preview', [VideoParentingController::class, 'p
 Route::middleware('api.auth')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginCheck'])->name('login.process');
+});
+
+Route::middleware(['api.auth','kasir'])->group(function () {
+
+    Route::get('/submit-voucher', [SubmitVoucherController::class, 'index'])
+        ->name('submit.voucher.index');
+
+    Route::post('/submit-voucher', [SubmitVoucherController::class, 'store'])
+        ->name('submit.voucher.store');
+
 });

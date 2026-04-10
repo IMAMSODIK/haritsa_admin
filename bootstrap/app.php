@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'api.auth' => ApiAuth::class,
+            'kasir' => \App\Http\Middleware\RoleKasir::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

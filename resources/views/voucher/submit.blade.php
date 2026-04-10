@@ -309,8 +309,11 @@
                     <input type="text" id="voucherCode" name="voucherCode" placeholder="contoh: VOUCHER25" autocomplete="off" spellcheck="false">
                 </div>
             </div>
+            <button class="submit-btn" id="cekBtn">
+                <span>🔓</span> <span id="btnText">Cek Voucher</span>
+            </button>
             <button class="submit-btn" id="submitBtn">
-                <span>🔓</span> <span id="btnText">Validasi & Klaim</span>
+                <span>🔓</span> <span id="btnText">Proses Voucher</span>
             </button>
             <footer>
                 * Setiap kode promo hanya dapat digunakan satu kali per transaksi
@@ -329,7 +332,7 @@
         ]);
 
         const voucherInput = document.getElementById('voucherCode');
-        const submitBtn = document.getElementById('submitBtn');
+        const cekBtn = document.getElementById('cekBtn');
         const btnTextSpan = document.getElementById('btnText');
         const messageBox = document.getElementById('messageBox');
 
@@ -382,6 +385,7 @@
             
             try {
                 const result = await validateVoucher(rawCode);
+                
                 showMessage('success', `✅ ${result.message} (Kode: ${result.code} | ${result.discount})`);
                 voucherInput.value = result.code;
                 
