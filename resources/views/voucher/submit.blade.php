@@ -569,8 +569,7 @@
                         Nominal : <b>Rp ${data.nominal.toLocaleString('id-ID')}</b><br>
                         Expired : <b>${expiry}</b><br>
                         Status Aktif : <b>${statusAktif}</b><br>
-                        Status Approval : <b>${statusApprove}</b><br>
-                        Source : <b>${data.source}</b>
+                        Status Approval : <b>${statusApprove}</b>
                     </div>
                 `;
 
