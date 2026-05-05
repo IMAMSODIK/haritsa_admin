@@ -327,6 +327,25 @@
             border-top: 1px solid #d1e3e8;
             margin: 16px 0 0;
         }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            /* ratio 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 
@@ -336,25 +355,52 @@
 
         <div class="hero-image position-relative">
 
-            @if (!empty($article['videoUrl']))
-                <iframe
-                    src="{{ \Illuminate\Support\Str::contains($article['videoUrl'], 'watch?v=')
-                        ? str_replace('watch?v=', 'embed/', $article['videoUrl'])
-                        : $article['videoUrl'] }}"
-                    title="{{ $article['title'] ?? 'Video' }}"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen>
-                </iframe>
-            @else
-                {{-- Banner Normal --}}
-                <img src="{{ $article['thumbnail'] ?? 'https://picsum.photos/800/450' }}"
-                    alt="{{ $article['title'] ?? 'Artikel' }}" class="img-fluid w-100" loading="lazy">
-            @endif
+            @php
+                use Illuminate\Support\Str;
 
-            <div class="category-tag">
-                <i class="far fa-compass" style="margin-right: 6px;"></i>
-                Video for Parents
-            </div>
+                $videoUrl = $article['videoUrl'] ?? '';
+                $embedUrl = null;
+
+                if (!empty($videoUrl)) {
+                    // Handle youtube watch?v=
+                    if (Str::contains($videoUrl, 'watch?v=')) {
+                        $videoId = explode('watch?v=', $videoUrl)[1];
+                        $videoId = explode('&', $videoId)[0];
+                        $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+                    }
+
+                    // Handle youtu.be
+                    elseif (Str::contains($videoUrl, 'youtu.be/')) {
+                        $videoId = explode('youtu.be/', $videoUrl)[1];
+                        $videoId = explode('?', $videoId)[0];
+                        $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+                    }
+
+                    // Jika sudah embed
+                    elseif (Str::contains($videoUrl, 'youtube.com/embed/')) {
+                        $embedUrl = $videoUrl;
+                    }
+
+                    // fallback (non youtube)
+                    else {
+                        $embedUrl = $videoUrl;
+                    }
+                }
+            @endphp
+
+            @if (!empty($embedUrl))
+                <div class="video-container">
+                    <iframe src="{{ $embedUrl }}?rel=0&modestbranding=1&playsinline=1"
+                        title="{{ $article['title'] ?? 'Video' }}" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            @else
+                {{-- Banner --}}
+                <img src="{{ $article['thumbnail'] ?? 'https://picsum.photos/800/450' }}"
+                    alt="{{ $article['title'] ?? 'Artikel' }}" class="img-fluid w-100 rounded" loading="lazy">
+            @endif
 
         </div>
 

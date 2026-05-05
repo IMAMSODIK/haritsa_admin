@@ -161,8 +161,8 @@
 
                         <!-- MODERATOR -->
                         <div class="mb-3">
-                            <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="article_moderator" placeholder="Masukkan moderator" maxlength="255" required>
+                            <label class="form-label">Narasumber</label>
+                            <input type="text" class="form-control" id="article_moderator" placeholder="Masukkan narasumber" maxlength="255" required>
                         </div>
 
                         <!-- VIDEO -->
@@ -209,7 +209,7 @@
 
                     <!-- meta -->
                     <div class="mb-2 text-muted small">
-                        🎙 Moderator: <span id="previewModerator"></span>
+                        🎙 Narasumber: <span id="previewModerator"></span>
                     </div>
 
                     <!-- content -->
@@ -261,8 +261,8 @@
 
                         <!-- MODERATOR -->
                         <div class="mb-3">
-                            <label class="form-label">Moderator</label>
-                            <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan moderator">
+                            <label class="form-label">Narasumber</label>
+                            <input type="text" class="form-control" id="edit_moderator" placeholder="Masukkan narasumber">
                         </div>
 
                         <div class="mb-3">
