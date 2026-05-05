@@ -567,11 +567,11 @@
                         <b>Informasi Voucher</b><br><br>
                         Kode : <b>${data.code}</b><br>
                         Nominal : <b>Rp ${data.nominal.toLocaleString('id-ID')}</b><br>
-                        Expired : <b>${expiry}</b><br>
                         Status Aktif : <b>${statusAktif}</b><br>
                         Status Approval : <b>${statusApprove}</b>
                     </div>
                 `;
+                // Tanggal Kadaluarsa : <b>${expiry}</b><br>
 
                         $('#voucherInfo').html(html).show();
                         $('#cekBtn').hide();
