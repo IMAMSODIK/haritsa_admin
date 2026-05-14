@@ -982,6 +982,7 @@
             let stores = p.store || [];
             let isAllStores = p.isAllStores || false;
             let storeHtml = '';
+            console.log(p);
 
             if (isAllStores) {
                 storeHtml = '<span class="badge bg-success">Semua Toko</span>';

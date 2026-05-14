@@ -524,9 +524,6 @@
         voucherInput.addEventListener('focus', () => {
             if (messageBox.classList.contains('info') && messageBox.innerHTML.includes('Masukkan kode promo')) {}
         });
-
-
-        console.log('Voucher page siap — desain responsif dan modern');
     </script>
 
     <script>
