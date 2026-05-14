@@ -11,7 +11,7 @@
 
     <div class="logo-icon-wrapper">
         <a href="/dashboard">
-            <img class="img-fluid" style="100px" src="{{ asset('own_assets/logo/logo.png') }}" alt="">
+            <img class="img-fluid" style="width: 100px" src="{{ asset('own_assets/logo/logo.png') }}" alt="">
         </a>
     </div>
     <nav class="sidebar-main">
@@ -19,7 +19,7 @@
         <div id="sidebar-menu">
             <ul class="sidebar-links" id="simple-bar">
                 <li class="back-btn"><a href="/dashboard"><img class="img-fluid"
-                            src="{{ asset('own_assets/logo/logo.png') }}" style="100px" alt=""></a>
+                            src="{{ asset('own_assets/logo/logo.png') }}" style="width: 100px" alt=""></a>
                     <div class="mobile-back text-end"> <span>Back </span><i class="fa fa-angle-right ps-2"
                             aria-hidden="true"></i></div>
                 </li>
