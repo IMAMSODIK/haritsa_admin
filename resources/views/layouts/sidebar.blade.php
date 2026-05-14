@@ -1,7 +1,7 @@
 <div class="sidebar-wrapper" data-layout="stroke-svg">
     <div class="logo-wrapper">
         <a href="/dashboard">
-            <img class="img-fluid" style="width: 100px;" src="{{ asset('own_assets/logo/logo.png') }}" alt="">
+            <img class="img-fluid" style="width: 20px;" src="{{ asset('own_assets/logo/logo.png') }}" alt="">
         </a>
         <div class="back-btn"><i class="fa fa-angle-left"> </i></div>
         <div class="toggle-sidebar">
