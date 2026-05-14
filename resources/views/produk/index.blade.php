@@ -983,20 +983,11 @@
             let isAllStores = p.isAllStores || false;
             let storeHtml = '';
 
-            console.log(stores.length)
             if (isAllStores) {
                 storeHtml = '<span class="badge bg-success">Semua Toko</span>';
-            } else if (stores.length > 0) {
-                if (Array.isArray(stores)) {
-                    storeHtml = stores.map(store =>
-                        `<span class="badge bg-secondary me-1">${store.name || 'Toko'}</span>`
-                    ).join('');
-                } else {
-                    storeHtml = `<span class="badge bg-secondary">${stores.name || 'Toko'}</span>`;
-                }
             } else {
-                storeHtml = '<span class="badge bg-warning text-dark">Tidak ada toko</span>';
-            }
+                storeHtml = `<span class="badge bg-secondary">${stores.name || 'Toko'}</span>`;
+            } 
             $('#previewStore').html(storeHtml);
 
             // Deskripsi
