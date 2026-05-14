@@ -986,7 +986,7 @@
             if (isAllStores) {
                 storeHtml = '<span class="badge bg-success">Semua Toko</span>';
             } else {
-                storeHtml = `<span class="badge bg-secondary">${stores.name || 'Toko'}</span>`;
+                storeHtml = `<span class="badge bg-light text-dark">${stores.name || 'Toko'}</span>`;
             } 
             $('#previewStore').html(storeHtml);
 
