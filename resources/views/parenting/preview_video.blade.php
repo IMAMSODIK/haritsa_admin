@@ -51,6 +51,8 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            overflow: hidden;
+            /* Menambahkan overflow hidden */
         }
 
         .hero-image img {
@@ -60,13 +62,41 @@
             display: block;
         }
 
-        .hero-image iframe {
+        .video-container {
             position: absolute;
             inset: 0;
-            /* top:0 left:0 right:0 bottom:0 */
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-image iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             border: 0;
+        }
+
+        .hero-image iframe:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
+        }
+
+        .hero-image iframe:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
+        }
+
+        .hero-image iframe:-moz-full-screen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            max-height: none;
         }
 
         /* label / kategori di atas gambar */
@@ -354,7 +384,6 @@
     <main class="article-wrapper">
 
         <div class="hero-image position-relative">
-
             @php
                 use Illuminate\Support\Str;
 
@@ -362,7 +391,6 @@
                 $embedUrl = null;
 
                 if (!empty($videoUrl)) {
-                    // Handle youtube watch?v=
                     if (Str::contains($videoUrl, 'watch?v=')) {
                         $videoId = explode('watch?v=', $videoUrl)[1];
                         $videoId = explode('&', $videoId)[0];
@@ -390,7 +418,7 @@
 
             @if (!empty($embedUrl))
                 <div class="video-container">
-                    <iframe src="{{ $embedUrl }}?rel=0&modestbranding=1&playsinline=1"
+                    <iframe src="{{ $embedUrl }}?rel=0&modestbranding=1&playsinline=1&controls=1&fs=1"
                         title="{{ $article['title'] ?? 'Video' }}" frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowfullscreen>

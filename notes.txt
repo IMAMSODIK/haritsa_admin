@@ -176,3 +176,19 @@ saat hapus kuis parenting, belum reload (done)
 
 
 F3*ZjvW(0g+H+;Kn
+
+
+
+
+
+
+
+Catatan perbaikan apps haritsa
+1. Code batang diganti qr code pada voucher
+2. Munculkan id voucher 
+3. Post data member baru ke affari
+4. Get data H poin. Dari affari
+5. Fitur penawaran produk - Lokasi toko masih all semua sesuaikan dengan lokasi toko pada inputan (done)
+6. Fullscreen pada video parenting
+7. survei layanan pakai priode saja
+8. Daftar member lama masih belum connect datanya ke affari
