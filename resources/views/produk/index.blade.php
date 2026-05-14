@@ -418,7 +418,7 @@
                         <div class="mb-3">
                             <label class="form-label">Store</label>
                             <div class="input-group">
-                                <input type="text" id="edit_storeName" class="form-control" readonly placeholder="Pilih nama store">
+                                <input type="text" id="edit_storeName" class="form-control" placeholder="Pilih nama store">
                                 <input type="hidden" id="edit_storeId">
                                 <button class="btn btn-outline-primary" id="edit-select-store" type="button"
                                     data-bs-toggle="modal" data-bs-target="#storePickerModal">
