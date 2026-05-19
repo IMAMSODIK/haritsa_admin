@@ -202,12 +202,8 @@
 <div class="document">
     <!-- Header dengan logo dan identitas -->
     <div class="header">
-        <div class="logo-area">
-            <div class="logo-placeholder">
-                <img src="{{asset('own_assets/logo/logo_dark.png')}}" width="10%" alt="">
-            </div>
-        </div>
         <div class="title-area">
+            <img src="{{asset('own_assets/logo/logo_dark.png')}}" width="100%" alt="">
             <h1>SYARAT DAN KETENTUAN PENGGUNAAN<br>APLIKASI HARITSA MEMBER (MyHaritsa)</h1>
             <div class="subtitle">PT Haritsa Pipa Rezeki – Platform Manajemen Member Parenting Terintegrasi</div>
             <div class="effective-date">Berlaku efektif sejak : 19 Mei 2026 | Versi terbaru</div>
