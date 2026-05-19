@@ -168,3 +168,7 @@ Route::middleware(['api.auth','kasir'])->group(function () {
     Route::post('/submit-voucher/process/{id}', [SubmitVoucherController::class, 'process']);
 
 });
+
+Route::get('/terms-and-conditions', function(){
+    return view('terms');
+});
