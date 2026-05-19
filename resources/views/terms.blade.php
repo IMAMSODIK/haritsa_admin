@@ -205,7 +205,7 @@
     <div class="header">
         <div class="logo-area">
             <div class="logo-placeholder">
-                <img src="{{asset('own_assets/logo/logo_dark.png')}}" alt="">
+                <img src="{{asset('own_assets/logo/logo_dark.png')}}" width="200px" alt="">
             </div>
         </div>
         <div class="title-area">
