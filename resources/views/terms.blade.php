@@ -45,7 +45,6 @@
         .logo-placeholder {
             width: 70px;
             height: 70px;
-            background-color: #0262DD;
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -205,7 +204,7 @@
     <div class="header">
         <div class="logo-area">
             <div class="logo-placeholder">
-                <img src="{{asset('own_assets/logo/logo_dark.png')}}" width="200px" alt="">
+                <img src="{{asset('own_assets/logo/logo_dark.png')}}" width="10%" alt="">
             </div>
         </div>
         <div class="title-area">
