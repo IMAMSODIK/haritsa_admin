@@ -205,10 +205,8 @@
     <div class="header">
         <div class="logo-area">
             <div class="logo-placeholder">
-                HM
+                <img src="{{asset('own_assets/logo/logo_dark.png')}}" alt="">
             </div>
-            <!-- Jika ingin menampilkan gambar logo asli, gunakan tag img: -->
-            <!-- <img src="logo-haritsa.png" alt="Logo Haritsa Member" style="height:70px;"> -->
         </div>
         <div class="title-area">
             <h1>SYARAT DAN KETENTUAN PENGGUNAAN<br>APLIKASI HARITSA MEMBER (MyHaritsa)</h1>
